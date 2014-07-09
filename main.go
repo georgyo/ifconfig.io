@@ -3,14 +3,18 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
+
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"path"
 )
 
+
+// Logger is a simple log handler, out puts in the standard of apache access log common
+// http://httpd.apache.org/docs/2.2/logs.html#accesslog
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
@@ -23,11 +27,9 @@ func Logger() gin.HandlerFunc {
 		c.Next()
 		// after request
 
-		var user string
+		user := "-"
 		if c.Req.URL.User != nil {
 			user = c.Req.URL.User.Username()
-		} else {
-			user = "-"
 		}
 
 		latency := time.Since(t)
@@ -38,7 +40,6 @@ func Logger() gin.HandlerFunc {
 			c.Req.Proto, c.Writer.Status(), c.Req.ContentLength, latency)
 	}
 }
-
 
 func mainHandler(c *gin.Context) {
 	fields := strings.Split(c.Params.ByName("field"), ".")
@@ -53,7 +54,7 @@ func mainHandler(c *gin.Context) {
 	c.Set("encoding", c.Req.Header.Get("Accept-Encoding"))
 
 	hostnames, err := net.LookupAddr(ip.IP.String())
-	if err !=  nil {
+	if err != nil {
 		c.Set("host", "")
 	} else {
 		c.Set("host", hostnames[0])
@@ -71,7 +72,7 @@ func mainHandler(c *gin.Context) {
 		if ua[0] == "curl" {
 			c.String(200, fmt.Sprintln(ip.IP))
 		} else {
-			c.String(200, "Page Coming Soon")
+			c.HTML(200, "index.html", c.Keys)
 		}
 		return
 	case "request":
@@ -94,11 +95,14 @@ func mainHandler(c *gin.Context) {
 
 }
 
+
+// FileServer is a basic file serve handler, this is just here as an example.
+// gin.Static() should be used instead
 func FileServer(root string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Params.ByName("file")
 		if !strings.HasPrefix(file, "/") {
-			file = "/"+file
+			file = "/" + file
 		}
 		http.ServeFile(c.Writer, c.Req, path.Join(root, path.Clean(file)))
 	}
@@ -108,6 +112,7 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(Logger())
+	r.LoadHTMLTemplates("templates/*")
 
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
