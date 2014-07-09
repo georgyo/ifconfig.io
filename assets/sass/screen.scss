@@ -1,0 +1,59 @@
+
+$gray: #757575;
+$white: #fff;
+
+body {
+    width: 750px;
+    border: 1px solid $gray;
+    margin: 20px auto;
+    color: $gray;
+}
+
+nav, footer {
+    background-color: $gray;
+    color: $white;
+    height: 20px;
+    line-height: 20px;
+    padding: 5px;
+}
+
+header {
+    h1 {
+        margin: .67em;
+    }
+}
+
+nav {
+}
+
+main {
+    min-height:300px;
+
+    table {
+        margin: 10px;
+        width: 730px;
+        tbody {
+            border: 1px solid $gray;
+
+        }
+        tr {
+            border-bottom: 1px solid $gray;
+            th {
+                text-align: left;
+                padding: 20px;
+                font-size: 1.5em;
+            }
+            td {
+                padding: 10px;
+                width: 30%;
+            }
+            td + td {
+                width: 70%;
+            }
+        }
+    }
+}
+
+footer {
+    text-align: center;
+}
