@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
+	"net/http/fcgi"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
 
 // Logger is a simple log handler, out puts in the standard of apache access log common.
 // See http://httpd.apache.org/docs/2.2/logs.html#accesslog
@@ -95,7 +94,6 @@ func mainHandler(c *gin.Context) {
 
 }
 
-
 // FileServer is a basic file serve handler, this is just here as an example.
 // gin.Static() should be used instead
 func FileServer(root string) gin.HandlerFunc {
@@ -117,9 +115,20 @@ func main() {
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// Create a listener for FCGI
+	fcgi_listen, err := net.Listen("tcp", "127.0.0.1:4000")
+	if err != nil {
+		panic(err)
 	}
-	r.Run(":" + port)
+	err = fcgi.Serve(fcgi_listen, r)
+	if err != nil {
+		panic(err)
+	}
+
+	//port := os.Getenv("PORT")
+	//host := os.Getenv("HOST")
+	//if port == "" {
+	//	port = "8080"
+	//}
+	//r.Run(host + ":" + port)
 }
