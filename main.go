@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
+
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"path"
 )
 
 func Logger() gin.HandlerFunc {
@@ -39,7 +40,6 @@ func Logger() gin.HandlerFunc {
 	}
 }
 
-
 func mainHandler(c *gin.Context) {
 	fields := strings.Split(c.Params.ByName("field"), ".")
 	ip, err := net.ResolveTCPAddr("tcp", c.Req.RemoteAddr)
@@ -53,7 +53,7 @@ func mainHandler(c *gin.Context) {
 	c.Set("encoding", c.Req.Header.Get("Accept-Encoding"))
 
 	hostnames, err := net.LookupAddr(ip.IP.String())
-	if err !=  nil {
+	if err != nil {
 		c.Set("host", "")
 	} else {
 		c.Set("host", hostnames[0])
@@ -71,7 +71,7 @@ func mainHandler(c *gin.Context) {
 		if ua[0] == "curl" {
 			c.String(200, fmt.Sprintln(ip.IP))
 		} else {
-			c.String(200, "Page Coming Soon")
+			c.HTML(200, "index.html", c.Keys)
 		}
 		return
 	case "request":
@@ -98,7 +98,7 @@ func FileServer(root string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Params.ByName("file")
 		if !strings.HasPrefix(file, "/") {
-			file = "/"+file
+			file = "/" + file
 		}
 		http.ServeFile(c.Writer, c.Req, path.Join(root, path.Clean(file)))
 	}
@@ -108,6 +108,7 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(Logger())
+	r.LoadHTMLTemplates("templates/*")
 
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
