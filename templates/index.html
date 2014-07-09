@@ -4,12 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap.min.css" />
-    <style>li.list-group-item{overflow:auto;padding-top:6px;padding-bottom:6px;}</style>
+    <style>li.list-group-item{overflow:auto;padding-top:6px;padding-bottom:6px;}header.page-header{margin-top:20px;}a.h1{color:inherit;text-decoration:none;}</style>
     <title>ifconfig.io</title>
   </head>
   <body>
     <header class="page-header container">
-      <h1>What is my ip address? - <small>ifconfig.io</small></h1>
+      <a href="/" class="h1">
+        What is my ip address? - <small>ifconfig.io</small>
+      </a>
     </header>
     <nav class="container"></nav>
     <main class="container">
@@ -37,12 +39,6 @@
             <div class="col-sm-3">Referer</div><div class="col-sm-9">{{ .referer }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Connection</div><div class="col-sm-9">{{ .connection }}</div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-sm-3">KeepAlive</div><div class="col-sm-9">{{ .keep_alive }}</div>
-          </li>
-          <li class="list-group-item">
             <div class="col-sm-3">Method</div><div class="col-sm-9">{{ .method }}</div>
           </li>
           <li class="list-group-item">
@@ -50,12 +46,6 @@
           </li>
           <li class="list-group-item">
             <div class="col-sm-3">MIME Type</div><div class="col-sm-9">{{ .mime }}</div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-sm-3">Charset</div><div class="col-sm-9">{{ .charset }}</div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-sm-3">Via</div><div class="col-sm-9">{{ .via }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-sm-3">X-Forwarded-For</div><div class="col-sm-9">{{ .forwarded }}</div>
@@ -86,22 +76,10 @@
             <div class="col-sm-4">$ curl ifconfig.io/lang</div><div class="col-sm-8">{{ .lang }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/keepalive</div><div class="col-sm-8">{{ .keep_alive }}</div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/connection</div><div class="col-sm-8">{{ .connection }}</div>
-          </li>
-          <li class="list-group-item">
             <div class="col-sm-4">$ curl ifconfig.io/encoding</div><div class="col-sm-8">{{ .encoding }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-sm-4">$ curl ifconfig.io/mime</div><div class="col-sm-8">{{ .mime }}</div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/charset</div><div class="col-sm-8">{{ .charset }}</div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/via</div><div class="col-sm-8">{{ .via }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-sm-4">$ curl ifconfig.io/forwarded</div><div class="col-sm-8">{{ .forwarded }}</div>
@@ -118,6 +96,8 @@
         </ul>
       </div>
     </main>
-    <footer class="container">&copy; 2014 ifconfig.io</footer>
+    <footer class="container text-center">
+      <p>&copy; 2014 ifconfig.io</p>
+    </footer>
   </body>
 </html>
