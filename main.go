@@ -13,8 +13,8 @@ import (
 )
 
 
-// Logger is a simple log handler, out puts in the standard of apache access log common
-// http://httpd.apache.org/docs/2.2/logs.html#accesslog
+// Logger is a simple log handler, out puts in the standard of apache access log common.
+// See http://httpd.apache.org/docs/2.2/logs.html#accesslog
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
