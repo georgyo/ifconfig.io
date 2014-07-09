@@ -3,165 +3,121 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.1/normalize.min.css" />
-      <style>
-          body {
-              width: 750px;
-              border: 1px solid #757575;
-              margin: 20px auto;
-              color: #757575; }
-
-          nav, footer {
-              background-color: #757575;
-              color: white;
-              height: 20px;
-              line-height: 20px;
-              padding: 5px; }
-
-          header h1 {
-              margin: .67em; }
-
-          main {
-              min-height: 300px; }
-          main table {
-              margin: 10px;
-              width: 730px; }
-          main table tbody {
-              border: 1px solid #757575; }
-          main table tr {
-              border-bottom: 1px solid #757575; }
-          main table tr th {
-              text-align: left;
-              padding: 20px;
-              font-size: 1.5em; }
-          main table tr td {
-              padding: 10px;
-              width: 30%; }
-          main table tr td + td {
-              width: 70%; }
-
-          footer {
-              text-align: center; }
-      </style>
-    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <!-- script type="application/javascript" src="/js/main.js"></script-->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap.min.css" />
+    <style>li.list-group-item{overflow:auto;padding-top:6px;padding-bottom:6px;}</style>
     <title>ifconfig.io</title>
   </head>
   <body>
-    <header>
+    <header class="page-header container">
       <h1>What is my ip address? - <small>ifconfig.io</small></h1>
     </header>
-    <nav></nav>
-    <main>
-      <table>
-        <thead>
-          <tr><th colspan="2">Your Connection</th></tr>
-        </thead>
-        <tfoot></tfoot>
-        <tbody>
-          <tr>
-            <td>IP Address</td><td>{{ .ip }}</td>
-          </tr>
-          <tr>
-            <td>Remote Host</td><td>{{ .host }}</td>
-          </tr>
-          <tr>
-            <td>User Agent</td><td>{{ .ua }}</td>
-          </tr>
-          <tr>
-            <td>Port</td><td>{{ .port }}</td>
-          </tr>
-          <tr>
-            <td>Language</td><td>{{ .lang }}</td>
-          </tr>
-          <tr>
-            <td>Referer</td><td>{{ .referer }}</td>
-          </tr>
-          <tr>
-            <td>Connection</td><td>{{ .connection }}</td>
-          </tr>
-          <tr>
-            <td>KeepAlive</td><td>{{ .keep_alive }}</td>
-          </tr>
-          <tr>
-            <td>Method</td><td>{{ .method }}</td>
-          </tr>
-          <tr>
-            <td>Encoding</td><td>{{ .encoding }}</td>
-          </tr>
-          <tr>
-            <td>MIME Type</td><td>{{ .mime }}</td>
-          </tr>
-          <tr>
-            <td>Charset</td><td>{{ .charset }}</td>
-          </tr>
-          <tr>
-            <td>Via</td><td>{{ .via }}</td>
-          </tr>
-          <tr>
-            <td>X-Forwarded-For</td><td>{{ .forwarded }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <table>
-        <thead>
-          <tr>
-            <th colspan="2">Command Line Interface</th>
-          </tr>
-        </thead>
-        <tfoot></tfoot>
-        <tbody>
-          <tr>
-            <td>$ curl ifconfig.io</td><td>{{ .ip }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/ip</td><td>{{ .ip }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/host</td><td>{{ .host }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/ua</td><td>{{ .ua }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/port</td><td>{{ .port }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/lang</td><td>{{ .lang }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/keepalive</td><td>{{ .keep_alive }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/connection</td><td>{{ .connection }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/encoding</td><td>{{ .encoding }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/mime</td><td>{{ .mime }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/charset</td><td>{{ .charset }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/via</td><td>{{ .via }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/forwarded</td><td>{{ .forwarded }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/all</td><td>{{ .hash_as_yaml }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/all.xml</td><td>{{ .hash_as_xml }}</td>
-          </tr>
-          <tr>
-            <td>$ curl ifconfig.io/all.json</td><td>{{ .hash_as_json }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <nav class="container"></nav>
+    <main class="container">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Your Connection</h4>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <div class="col-sm-3">IP Address</div><div class="col-sm-9">{{ .ip }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Remote Host</div><div class="col-sm-9">{{ .host }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">User Agent</div><div class="col-sm-9">{{ .ua }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Port</div><div class="col-sm-9">{{ .port }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Language</div><div class="col-sm-9">{{ .lang }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Referer</div><div class="col-sm-9">{{ .referer }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Connection</div><div class="col-sm-9">{{ .connection }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">KeepAlive</div><div class="col-sm-9">{{ .keep_alive }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Method</div><div class="col-sm-9">{{ .method }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Encoding</div><div class="col-sm-9">{{ .encoding }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">MIME Type</div><div class="col-sm-9">{{ .mime }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Charset</div><div class="col-sm-9">{{ .charset }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">Via</div><div class="col-sm-9">{{ .via }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-3">X-Forwarded-For</div><div class="col-sm-9">{{ .forwarded }}</div>
+          </li>
+        </ul>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Your Connection</h4>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io</div><div class="col-sm-8">{{ .ip }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/ip</div><div class="col-sm-8">{{ .ip }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/host</div><div class="col-sm-8">{{ .host }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/ua</div><div class="col-sm-8">{{ .ua }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/port</div><div class="col-sm-8">{{ .port }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/lang</div><div class="col-sm-8">{{ .lang }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/keepalive</div><div class="col-sm-8">{{ .keep_alive }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/connection</div><div class="col-sm-8">{{ .connection }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/encoding</div><div class="col-sm-8">{{ .encoding }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/mime</div><div class="col-sm-8">{{ .mime }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/charset</div><div class="col-sm-8">{{ .charset }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/via</div><div class="col-sm-8">{{ .via }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/forwarded</div><div class="col-sm-8">{{ .forwarded }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/all</div><div class="col-sm-8">{{ .hash_as_yaml }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/all.xml</div><div class="col-sm-8">{{ .hash_as_xml }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/all.json</div><div class="col-sm-8">{{ .hash_as_json }}</div>
+          </li>
+        </ul>
+      </div>
     </main>
-    <footer>&copy; 2014 ifconfig.io</footer>
+    <footer class="container">&copy; 2014 ifconfig.io</footer>
   </body>
 </html>
