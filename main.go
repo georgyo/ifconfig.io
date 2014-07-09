@@ -12,6 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
+// Logger is a simple log handler, out puts in the standard of apache access log common
+// http://httpd.apache.org/docs/2.2/logs.html#accesslog
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
@@ -24,11 +27,9 @@ func Logger() gin.HandlerFunc {
 		c.Next()
 		// after request
 
-		var user string
+		user := "-"
 		if c.Req.URL.User != nil {
 			user = c.Req.URL.User.Username()
-		} else {
-			user = "-"
 		}
 
 		latency := time.Since(t)
@@ -94,6 +95,9 @@ func mainHandler(c *gin.Context) {
 
 }
 
+
+// FileServer is a basic file serve handler, this is just here as an example.
+// gin.Static() should be used instead
 func FileServer(root string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Params.ByName("file")
