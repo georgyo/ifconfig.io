@@ -90,7 +90,7 @@
             <td>Encoding</td><td>{{ .encoding }}</td>
           </tr>
           <tr>
-            <td>MIME Type</td><td>{{ .mime_type }}</td>
+            <td>MIME Type</td><td>{{ .mime }}</td>
           </tr>
           <tr>
             <td>Charset</td><td>{{ .charset }}</td>
@@ -99,7 +99,7 @@
             <td>Via</td><td>{{ .via }}</td>
           </tr>
           <tr>
-            <td>X-Forwarded-For</td><td>{{ .x_forwarded_for }}</td>
+            <td>X-Forwarded-For</td><td>{{ .forwarded }}</td>
           </tr>
         </tbody>
       </table>
@@ -139,7 +139,7 @@
             <td>$ curl ifconfig.io/encoding</td><td>{{ .encoding }}</td>
           </tr>
           <tr>
-            <td>$ curl ifconfig.io/mime</td><td>{{ .mime_type }}</td>
+            <td>$ curl ifconfig.io/mime</td><td>{{ .mime }}</td>
           </tr>
           <tr>
             <td>$ curl ifconfig.io/charset</td><td>{{ .charset }}</td>
@@ -148,7 +148,7 @@
             <td>$ curl ifconfig.io/via</td><td>{{ .via }}</td>
           </tr>
           <tr>
-            <td>$ curl ifconfig.io/forwarded</td><td>{{ .x_forwarded_for }}</td>
+            <td>$ curl ifconfig.io/forwarded</td><td>{{ .forwarded }}</td>
           </tr>
           <tr>
             <td>$ curl ifconfig.io/all</td><td>{{ .hash_as_yaml }}</td>

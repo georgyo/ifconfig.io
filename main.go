@@ -51,6 +51,10 @@ func mainHandler(c *gin.Context) {
 	c.Set("ua", c.Req.UserAgent())
 	c.Set("lang", c.Req.Header.Get("Accept-Language"))
 	c.Set("encoding", c.Req.Header.Get("Accept-Encoding"))
+	c.Set("method",  c.Req.Method)
+	c.Set("mime", c.Req.Header.Get("Accept"))
+	c.Set("referer", c.Req.Header.Get("Referer"))
+	c.Set("forwarded", c.Req.Header.Get("X-Forwarded-For"))
 
 	hostnames, err := net.LookupAddr(ip.IP.String())
 	if err != nil {
