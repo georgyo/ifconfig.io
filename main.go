@@ -40,6 +40,15 @@ func Logger() gin.HandlerFunc {
 	}
 }
 
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func mainHandler(c *gin.Context) {
 	fields := strings.Split(c.Params.ByName("field"), ".")
 	ip, err := net.ResolveTCPAddr("tcp", c.Req.RemoteAddr)
@@ -51,16 +60,19 @@ func mainHandler(c *gin.Context) {
 	c.Set("ua", c.Req.UserAgent())
 	c.Set("lang", c.Req.Header.Get("Accept-Language"))
 	c.Set("encoding", c.Req.Header.Get("Accept-Encoding"))
-	c.Set("method",  c.Req.Method)
+	c.Set("method", c.Req.Method)
 	c.Set("mime", c.Req.Header.Get("Accept"))
 	c.Set("referer", c.Req.Header.Get("Referer"))
 	c.Set("forwarded", c.Req.Header.Get("X-Forwarded-For"))
 
-	hostnames, err := net.LookupAddr(ip.IP.String())
-	if err != nil {
-		c.Set("host", "")
-	} else {
-		c.Set("host", hostnames[0])
+	// Only lookup hostname if the results are going to need it.
+	if stringInSlice(fields[0], []string{"", "all", "host"}) {
+		hostnames, err := net.LookupAddr(ip.IP.String())
+		if err != nil {
+			c.Set("host", "")
+		} else {
+			c.Set("host", hostnames[0])
+		}
 	}
 
 	wantsJSON := false
