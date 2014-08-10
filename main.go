@@ -17,7 +17,7 @@ import (
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
-		ip, err := net.ResolveTCPAddr("tcp", c.Req.RemoteAddr)
+		ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 		if err != nil {
 			c.Abort(500)
 		}
@@ -27,16 +27,16 @@ func Logger() gin.HandlerFunc {
 		// after request
 
 		user := "-"
-		if c.Req.URL.User != nil {
-			user = c.Req.URL.User.Username()
+		if c.Request.URL.User != nil {
+			user = c.Request.URL.User.Username()
 		}
 
 		latency := time.Since(t)
 
 		// This is the format of Apache Log Common, with an additional field of latency
 		fmt.Printf("%v - %v [%v] \"%v %v %v\" %v %v %v\n",
-			ip.IP, user, t.Format(time.RFC3339), c.Req.Method, c.Req.URL.Path,
-			c.Req.Proto, c.Writer.Status(), c.Req.ContentLength, latency)
+			ip.IP, user, t.Format(time.RFC3339), c.Request.Method, c.Request.URL.Path,
+			c.Request.Proto, c.Writer.Status(), c.Request.ContentLength, latency)
 	}
 }
 
@@ -51,19 +51,19 @@ func stringInSlice(a string, list []string) bool {
 
 func mainHandler(c *gin.Context) {
 	fields := strings.Split(c.Params.ByName("field"), ".")
-	ip, err := net.ResolveTCPAddr("tcp", c.Req.RemoteAddr)
+	ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 	if err != nil {
 		c.Abort(500)
 	}
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
-	c.Set("ua", c.Req.UserAgent())
-	c.Set("lang", c.Req.Header.Get("Accept-Language"))
-	c.Set("encoding", c.Req.Header.Get("Accept-Encoding"))
-	c.Set("method", c.Req.Method)
-	c.Set("mime", c.Req.Header.Get("Accept"))
-	c.Set("referer", c.Req.Header.Get("Referer"))
-	c.Set("forwarded", c.Req.Header.Get("X-Forwarded-For"))
+	c.Set("ua", c.Request.UserAgent())
+	c.Set("lang", c.Request.Header.Get("Accept-Language"))
+	c.Set("encoding", c.Request.Header.Get("Accept-Encoding"))
+	c.Set("method", c.Request.Method)
+	c.Set("mime", c.Request.Header.Get("Accept"))
+	c.Set("referer", c.Request.Header.Get("Referer"))
+	c.Set("forwarded", c.Request.Header.Get("X-Forwarded-For"))
 
 	// Only lookup hostname if the results are going to need it.
 	if stringInSlice(fields[0], []string{"", "all", "host"}) {
@@ -80,7 +80,7 @@ func mainHandler(c *gin.Context) {
 		wantsJSON = true
 	}
 
-	ua := strings.Split(c.Req.UserAgent(), "/")
+	ua := strings.Split(c.Request.UserAgent(), "/")
 	switch fields[0] {
 	case "":
 		//If the user is using curl, then we should just return the IP, else we show the home page.
@@ -91,7 +91,7 @@ func mainHandler(c *gin.Context) {
 		}
 		return
 	case "request":
-		c.JSON(200, c.Req)
+		c.JSON(200, c.Request)
 		return
 	case "all":
 		if wantsJSON {
@@ -118,7 +118,7 @@ func FileServer(root string) gin.HandlerFunc {
 		if !strings.HasPrefix(file, "/") {
 			file = "/" + file
 		}
-		http.ServeFile(c.Writer, c.Req, path.Join(root, path.Clean(file)))
+		http.ServeFile(c.Writer, c.Request, path.Join(root, path.Clean(file)))
 	}
 }
 
