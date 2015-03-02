@@ -19,7 +19,7 @@ func Logger() gin.HandlerFunc {
 		t := time.Now()
 		ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 		if err != nil {
-			c.Abort(500)
+			c.Abort()
 		}
 
 		// before request
@@ -53,8 +53,14 @@ func mainHandler(c *gin.Context) {
 	fields := strings.Split(c.Params.ByName("field"), ".")
 	ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 	if err != nil {
-		c.Abort(500)
+		c.Abort()
 	}
+
+	cfIP := net.ParseIP(c.Request.Header.Get("CF-Connecting-IP"))
+	if cfIP != nil {
+		ip.IP = cfIP
+	}
+
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
 	c.Set("ua", c.Request.UserAgent())
