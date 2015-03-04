@@ -27,6 +27,9 @@
             <div class="col-sm-3">Remote Host</div><div class="col-sm-9">{{ .host }}</div>
           </li>
           <li class="list-group-item">
+            <div class="col-sm-3">Country Code</div><div class="col-sm-9">{{ .country_code }}</div>
+          </li>
+          <li class="list-group-item">
             <div class="col-sm-3">User Agent</div><div class="col-sm-9">{{ .ua }}</div>
           </li>
           <li class="list-group-item">
@@ -65,6 +68,9 @@
           </li>
           <li class="list-group-item">
             <div class="col-sm-4">$ curl ifconfig.io/host</div><div class="col-sm-8">{{ .host }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-sm-4">$ curl ifconfig.io/country_code</div><div class="col-sm-8">{{ .country_code }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-sm-4">$ curl ifconfig.io/ua</div><div class="col-sm-8">{{ .ua }}</div>

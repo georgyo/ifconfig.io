@@ -70,6 +70,7 @@ func mainHandler(c *gin.Context) {
 	c.Set("mime", c.Request.Header.Get("Accept"))
 	c.Set("referer", c.Request.Header.Get("Referer"))
 	c.Set("forwarded", c.Request.Header.Get("X-Forwarded-For"))
+	c.Set("country_code", c.Request.Header.Get("CF-IPCountry"))
 
 	// Only lookup hostname if the results are going to need it.
 	if stringInSlice(fields[0], []string{"", "all", "host"}) {
