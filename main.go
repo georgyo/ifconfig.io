@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/fcgi"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -143,15 +144,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = fcgi.Serve(fcgi_listen, r)
-	if err != nil {
-		panic(err)
-	}
+	errc := make(chan error)
+	go func(errc chan error) {
+		for err := range errc {
+			panic(err)
+		}
+	}(errc)
 
-	//port := os.Getenv("PORT")
-	//host := os.Getenv("HOST")
-	//if port == "" {
-	//	port = "8080"
-	//}
-	//r.Run(host + ":" + port)
+	go func(errc chan error) {
+		errc <- fcgi.Serve(fcgi_listen, r)
+	}(errc)
+
+	port := os.Getenv("PORT")
+	host := os.Getenv("HOST")
+	if port == "" {
+		port = "8080"
+	}
+	errc <- r.Run(host + ":" + port)
 }
