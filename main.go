@@ -73,8 +73,10 @@ func mainHandler(c *gin.Context) {
 	c.Set("forwarded", c.Request.Header.Get("X-Forwarded-For"))
 	c.Set("country_code", c.Request.Header.Get("CF-IPCountry"))
 
+	ua := strings.Split(c.Request.UserAgent(), "/")
+
 	// Only lookup hostname if the results are going to need it.
-	if stringInSlice(fields[0], []string{"", "all", "host"}) {
+	if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
 		hostnames, err := net.LookupAddr(ip.IP.String())
 		if err != nil {
 			c.Set("host", "")
@@ -88,7 +90,6 @@ func mainHandler(c *gin.Context) {
 		wantsJSON = true
 	}
 
-	ua := strings.Split(c.Request.UserAgent(), "/")
 	switch fields[0] {
 	case "":
 		//If the user is using curl, then we should just return the IP, else we show the home page.
@@ -110,9 +111,10 @@ func mainHandler(c *gin.Context) {
 		return
 	}
 
-	fieldResult, err := c.Get(fields[0])
-	if err != nil {
+	fieldResult, exists := c.Get(fields[0])
+	if !exists {
 		c.String(404, "Not Found")
+		return
 	}
 	c.String(200, fmt.Sprintln(fieldResult))
 
@@ -134,7 +136,7 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(Logger())
-	r.LoadHTMLTemplates("templates/*")
+	r.LoadHTMLGlob("templates/*")
 
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
