@@ -7,13 +7,13 @@ import (
 	"net/http/fcgi"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 
+	"github.com/brandfolder/gin-gorelic"
+	"github.com/coreos/go-systemd/activation"
 	"github.com/gin-gonic/gin"
-        "github.com/brandfolder/gin-gorelic"
-        "github.com/coreos/go-systemd/activation"
 )
 
 // Logger is a simple log handler, out puts in the standard of apache access log common.
@@ -54,7 +54,7 @@ func stringInSlice(a string, list []string) bool {
 }
 
 func testRemoteTCPPort(address string) bool {
-	_, err := net.DialTimeout("tcp", address, 3 * time.Second)
+	_, err := net.DialTimeout("tcp", address, 3*time.Second)
 	if err != nil {
 		return false
 	}
@@ -73,10 +73,10 @@ func mainHandler(c *gin.Context) {
 		ip.IP = cfIP
 	}
 
-        if fields[0] == "porttest" {
+	if fields[0] == "porttest" {
 		if len(fields) >= 2 {
 			if port, err := strconv.Atoi(fields[1]); err == nil && port > 0 && port <= 65535 {
-				c.String(200, fmt.Sprintln(testRemoteTCPPort(ip.IP.String() + ":" + fields[1])))
+				c.String(200, fmt.Sprintln(testRemoteTCPPort(ip.IP.String()+":"+fields[1])))
 			} else {
 				c.String(400, "Invalid Port Number")
 			}
@@ -84,7 +84,7 @@ func mainHandler(c *gin.Context) {
 			c.String(400, "Need Port")
 		}
 		return
-        }
+	}
 
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
@@ -189,7 +189,6 @@ func main() {
 	go func(errc chan error) {
 		errc <- fcgi.Serve(fcgi_listen, r)
 	}(errc)
-
 
 	// Listen on whatever systemd tells us to.
 	listeners, err := activation.Listeners(true)
