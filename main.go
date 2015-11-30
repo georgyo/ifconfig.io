@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+        "github.com/brandfolder/gin-gorelic"
 )
 
 // Logger is a simple log handler, out puts in the standard of apache access log common.
@@ -159,6 +160,15 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(Logger())
 	r.LoadHTMLGlob("templates/*")
+
+	if NEWRELIC_LICENSE_KEY := os.Getenv("NEWRELIC_LICENSE_KEY"); NEWRELIC_LICENSE_KEY != "" {
+		var NEWRELIC_APPLICATION_NAME string
+		if NEWRELIC_APPLICATION_NAME = os.Getenv("NEWRELIC_APPLICATION_NAME"); NEWRELIC_APPLICATION_NAME == "" {
+			NEWRELIC_APPLICATION_NAME = "ifconfig.io"
+		}
+		gorelic.InitNewrelicAgent(NEWRELIC_LICENSE_KEY, NEWRELIC_APPLICATION_NAME, true)
+		r.Use(gorelic.Handler)
+	}
 
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
