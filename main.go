@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
         "github.com/brandfolder/gin-gorelic"
+        "github.com/coreos/go-systemd/activation"
 )
 
 // Logger is a simple log handler, out puts in the standard of apache access log common.
@@ -188,6 +189,18 @@ func main() {
 	go func(errc chan error) {
 		errc <- fcgi.Serve(fcgi_listen, r)
 	}(errc)
+
+
+	// Listen on whatever systemd tells us to.
+	listeners, err := activation.Listeners(true)
+	if err != nil {
+		fmt.Printf("Could not get systemd listerns with err %q", err)
+	}
+	for _, listener := range listeners {
+		go func(errc chan error) {
+			errc <- http.Serve(listener, r)
+		}(errc)
+	}
 
 	port := os.Getenv("PORT")
 	host := os.Getenv("HOST")
