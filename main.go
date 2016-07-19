@@ -25,6 +25,10 @@ func Logger() gin.HandlerFunc {
 		if err != nil {
 			c.Abort()
 		}
+	        cfIP := net.ParseIP(c.Request.Header.Get("CF-Connecting-IP"))
+        	if cfIP != nil {
+        	        ip.IP = cfIP
+	        }
 
 		// before request
 		c.Next()
