@@ -1,2 +1,4 @@
 *.css
 .sass-cache/
+ifconfig.io
+*.save

@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brandfolder/gin-gorelic"
-	"github.com/coreos/go-systemd/activation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -90,6 +88,11 @@ func mainHandler(c *gin.Context) {
 		return
 	}
 
+	//if strings.HasPrefix(fields[0], ".well-known/") {
+	//	http.ServeFile(c.Writer, c.Request)
+	//	return
+	//}
+
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
 	c.Set("ua", c.Request.UserAgent())
@@ -166,15 +169,7 @@ func main() {
 	r.Use(Logger())
 	r.LoadHTMLGlob("templates/*")
 
-	if NEWRELIC_LICENSE_KEY := os.Getenv("NEWRELIC_LICENSE_KEY"); NEWRELIC_LICENSE_KEY != "" {
-		var NEWRELIC_APPLICATION_NAME string
-		if NEWRELIC_APPLICATION_NAME = os.Getenv("NEWRELIC_APPLICATION_NAME"); NEWRELIC_APPLICATION_NAME == "" {
-			NEWRELIC_APPLICATION_NAME = "ifconfig.io"
-		}
-		gorelic.InitNewrelicAgent(NEWRELIC_LICENSE_KEY, NEWRELIC_APPLICATION_NAME, true)
-		r.Use(gorelic.Handler)
-	}
-
+	//r.GET("/.well-known/", FileServer("/srv/http/.well-known"))
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
 
@@ -193,17 +188,6 @@ func main() {
 	go func(errc chan error) {
 		errc <- fcgi.Serve(fcgi_listen, r)
 	}(errc)
-
-	// Listen on whatever systemd tells us to.
-	listeners, err := activation.Listeners(true)
-	if err != nil {
-		fmt.Printf("Could not get systemd listerns with err %q", err)
-	}
-	for _, listener := range listeners {
-		go func(errc chan error) {
-			errc <- http.Serve(listener, r)
-		}(errc)
-	}
 
 	port := os.Getenv("PORT")
 	host := os.Getenv("HOST")
