@@ -1,10 +1,10 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
-	"net/http/fcgi"
 	"os"
 	"path"
 	"strconv"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // Logger is a simple log handler, out puts in the standard of apache access log common.
@@ -23,10 +24,10 @@ func Logger() gin.HandlerFunc {
 		if err != nil {
 			c.Abort()
 		}
-	        cfIP := net.ParseIP(c.Request.Header.Get("CF-Connecting-IP"))
-        	if cfIP != nil {
-        	        ip.IP = cfIP
-	        }
+		cfIP := net.ParseIP(c.Request.Header.Get("CF-Connecting-IP"))
+		if cfIP != nil {
+			ip.IP = cfIP
+		}
 
 		// before request
 		c.Next()
@@ -140,6 +141,9 @@ func mainHandler(c *gin.Context) {
 			c.String(200, "%v", c.Keys)
 		}
 		return
+	case "headers":
+		c.JSON(200, c.Request.Header)
+		return
 	}
 
 	fieldResult, exists := c.Get(fields[0])
@@ -163,21 +167,41 @@ func FileServer(root string) gin.HandlerFunc {
 	}
 }
 
+func RunWithManager(r http.Handler, m *autocert.Manager, errc chan error) error {
+	port := os.Getenv("PORT")
+	host := os.Getenv("HOST")
+	s := &http.Server{
+		Addr:      host + ":8443",
+		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
+		Handler:   r,
+	}
+
+	if port == "" {
+		port = "8080"
+	}
+	go http.ListenAndServe(host+":"+port, m.HTTPHandler(r))
+        fmt.Println("baaaaa")
+
+	return s.ListenAndServeTLS("", "")
+}
+
 func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(Logger())
 	r.LoadHTMLGlob("templates/*")
 
+	m := &autocert.Manager{
+		Cache:      autocert.DirCache("~/.acme_cache"),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("ifconfig.io", "www.ifconfig.io"),
+		Email:      "george@shamm.as",
+	}
+
 	//r.GET("/.well-known/", FileServer("/srv/http/.well-known"))
 	r.GET("/:field", mainHandler)
 	r.GET("/", mainHandler)
 
-	// Create a listener for FCGI
-	fcgi_listen, err := net.Listen("tcp", "127.0.0.1:4000")
-	if err != nil {
-		panic(err)
-	}
 	errc := make(chan error)
 	go func(errc chan error) {
 		for err := range errc {
@@ -185,14 +209,5 @@ func main() {
 		}
 	}(errc)
 
-	go func(errc chan error) {
-		errc <- fcgi.Serve(fcgi_listen, r)
-	}(errc)
-
-	port := os.Getenv("PORT")
-	host := os.Getenv("HOST")
-	if port == "" {
-		port = "8080"
-	}
-	errc <- r.Run(host + ":" + port)
+	errc <- RunWithManager(r, m, errc)
 }
