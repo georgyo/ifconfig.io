@@ -15,6 +15,18 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
+var manager *autocert.Manager
+
+func init() {
+        manager = &autocert.Manager{
+                Cache:      autocert.DirCache("~/.acme_cache"),
+                Prompt:     autocert.AcceptTOS,
+                HostPolicy: autocert.HostWhitelist("ifconfig.io", "www.ifconfig.io"),
+                Email:      "george@shamm.as",
+        } //).HTTPHandler(nil))
+}
+
+
 // Logger is a simple log handler, out puts in the standard of apache access log common.
 // See http://httpd.apache.org/docs/2.2/logs.html#accesslog
 func Logger() gin.HandlerFunc {
@@ -65,7 +77,9 @@ func testRemoteTCPPort(address string) bool {
 }
 
 func mainHandler(c *gin.Context) {
-	fields := strings.Split(c.Params.ByName("field"), ".")
+	// fields := strings.Split(c.Params.ByName("field"), ".")
+        fields_url := strings.Split(strings.Trim(c.Request.URL.EscapedPath(), "/"), "/")
+        fields := strings.Split(fields_url[0], ".")
 	ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 	if err != nil {
 		c.Abort()
@@ -191,15 +205,17 @@ func main() {
 	r.Use(Logger())
 	r.LoadHTMLGlob("templates/*")
 
-	m := &autocert.Manager{
-		Cache:      autocert.DirCache("~/.acme_cache"),
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("ifconfig.io", "www.ifconfig.io"),
-		Email:      "george@shamm.as",
-	}
-
 	//r.GET("/.well-known/", FileServer("/srv/http/.well-known"))
-	r.GET("/:field", mainHandler)
+        for _, route := range ([]string{
+        	"ip", "ua", "port", "lang", "encoding", "method",
+		"mime", "referer", "forwarded", "country_code",
+		"all", "headers", "porttest",
+	}) {
+		r.GET(fmt.Sprintf("/%s", route), mainHandler) 
+		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
+	}
+	//r.GET("/:field", mainHandler)
+        r.GET(".well-known/:unused", gin.WrapH(manager.HTTPHandler(r)))
 	r.GET("/", mainHandler)
 
 	errc := make(chan error)
@@ -209,5 +225,27 @@ func main() {
 		}
 	}(errc)
 
-	errc <- RunWithManager(r, m, errc)
+	port := os.Getenv("PORT")
+	sslport := os.Getenv("SSLPORT")
+	host := os.Getenv("HOST")
+
+	if port    == "" { port    = "8080"; }
+	if sslport == "" { sslport = "8443"; }
+
+	go func(errc chan error) {
+		s := http.Server{
+                        Addr: fmt.Sprintf("%s:%s", host, sslport),
+                        Handler: r,
+                        TLSConfig: manager.TLSConfig(),
+                }
+		errc <- s.ListenAndServeTLS("", "")
+	}(errc)
+
+	go func(errc chan error) {
+		errc <- r.Run(fmt.Sprintf("%s:%s", host, port))	
+	}(errc)
+
+        fmt.Println(<-errc)
+
+	//errc <- RunWithManager(r, m, errc)
 }
