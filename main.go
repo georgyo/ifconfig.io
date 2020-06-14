@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,20 +11,26 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/static"
 	"golang.org/x/crypto/acme/autocert"
 )
 
 var manager *autocert.Manager
-
-func init() {
-        manager = &autocert.Manager{
-                Cache:      autocert.DirCache("~/.acme_cache"),
-                Prompt:     autocert.AcceptTOS,
-                HostPolicy: autocert.HostWhitelist("ifconfig.io", "www.ifconfig.io"),
-                Email:      "george@shamm.as",
-        } //).HTTPHandler(nil))
+var validDomains []string = []string {
+	"ifconfig.io",
+	"www.ifconfig.io",
+	"4.ifconfig.io",
+	// "6.ifconfig.io",
 }
 
+func init() {
+	manager = &autocert.Manager{
+		Cache:  autocert.DirCache("~/.acme_cache"),
+		Prompt: autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(validDomains...),
+		Email: "george@shamm.as",
+	} //).HTTPHandler(nil))
+}
 
 // Logger is a simple log handler, out puts in the standard of apache access log common.
 // See http://httpd.apache.org/docs/2.2/logs.html#accesslog
@@ -78,8 +83,8 @@ func testRemoteTCPPort(address string) bool {
 
 func mainHandler(c *gin.Context) {
 	// fields := strings.Split(c.Params.ByName("field"), ".")
-        fields_url := strings.Split(strings.Trim(c.Request.URL.EscapedPath(), "/"), "/")
-        fields := strings.Split(fields_url[0], ".")
+	URLFields := strings.Split(strings.Trim(c.Request.URL.EscapedPath(), "/"), "/")
+	fields := strings.Split(URLFields[0], ".")
 	ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 	if err != nil {
 		c.Abort()
@@ -122,7 +127,8 @@ func mainHandler(c *gin.Context) {
 	ua := strings.Split(c.Request.UserAgent(), "/")
 
 	// Only lookup hostname if the results are going to need it.
-	if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
+	// if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
+	if stringInSlice(fields[0], []string{"host"}) || (fields[0] == "" && ua[0] != "curl") {
 		hostnames, err := net.LookupAddr(ip.IP.String())
 		if err != nil {
 			c.Set("host", "")
@@ -181,41 +187,24 @@ func FileServer(root string) gin.HandlerFunc {
 	}
 }
 
-func RunWithManager(r http.Handler, m *autocert.Manager, errc chan error) error {
-	port := os.Getenv("PORT")
-	host := os.Getenv("HOST")
-	s := &http.Server{
-		Addr:      host + ":8443",
-		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
-		Handler:   r,
-	}
-
-	if port == "" {
-		port = "8080"
-	}
-	go http.ListenAndServe(host+":"+port, m.HTTPHandler(r))
-        fmt.Println("baaaaa")
-
-	return s.ListenAndServeTLS("", "")
-}
-
 func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.Use(Logger())
+	r.Use(static.Serve("/.well-known", static.LocalFile("/srv/http/.well-known", false)))
+	//r.Use(Logger())
 	r.LoadHTMLGlob("templates/*")
 
 	//r.GET("/.well-known/", FileServer("/srv/http/.well-known"))
-        for _, route := range ([]string{
-        	"ip", "ua", "port", "lang", "encoding", "method",
+	for _, route := range []string{
+		"ip", "ua", "port", "lang", "encoding", "method",
 		"mime", "referer", "forwarded", "country_code",
 		"all", "headers", "porttest",
-	}) {
-		r.GET(fmt.Sprintf("/%s", route), mainHandler) 
+	} {
+		r.GET(fmt.Sprintf("/%s", route), mainHandler)
 		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
 	}
 	//r.GET("/:field", mainHandler)
-        r.GET(".well-known/:unused", gin.WrapH(manager.HTTPHandler(r)))
+	// r.GET(".well-known/:unused", gin.WrapH(manager.HTTPHandler(r)))
 	r.GET("/", mainHandler)
 
 	errc := make(chan error)
@@ -229,23 +218,33 @@ func main() {
 	sslport := os.Getenv("SSLPORT")
 	host := os.Getenv("HOST")
 
-	if port    == "" { port    = "8080"; }
-	if sslport == "" { sslport = "8443"; }
+	if port == "" {
+		port = "8080"
+	}
+	if sslport == "" {
+		sslport = "8443"
+	}
+
+	// go func(errc chan error) {
+	// 	s := http.Server{
+	// 		Addr:      fmt.Sprintf("%s:%s", host, sslport),
+	// 		Handler:   r,
+	// 		TLSConfig: manager.TLSConfig(),
+	// 	}
+	// 	errc <- s.ListenAndServeTLS("", "")
+	// }(errc)
 
 	go func(errc chan error) {
-		s := http.Server{
-                        Addr: fmt.Sprintf("%s:%s", host, sslport),
-                        Handler: r,
-                        TLSConfig: manager.TLSConfig(),
-                }
-		errc <- s.ListenAndServeTLS("", "")
+		errc <- r.Run(fmt.Sprintf("%s:%s", host, port))
 	}(errc)
 
 	go func(errc chan error) {
-		errc <- r.Run(fmt.Sprintf("%s:%s", host, port))	
+		errc <- r.RunTLS(
+			fmt.Sprintf("%s:%s", host, sslport),
+			"/opt/ifconfig/.cf/ifconfig.io.crt",
+			"/opt/ifconfig/.cf/ifconfig.io.key")
 	}(errc)
 
-        fmt.Println(<-errc)
 
-	//errc <- RunWithManager(r, m, errc)
+	fmt.Println(<-errc)
 }
