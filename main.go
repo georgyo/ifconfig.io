@@ -3,66 +3,13 @@ package main
 import (
 	"fmt"
 	"net"
-	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/static"
-	"golang.org/x/crypto/acme/autocert"
 )
-
-var manager *autocert.Manager
-var validDomains []string = []string {
-	"ifconfig.io",
-	"www.ifconfig.io",
-	"4.ifconfig.io",
-	// "6.ifconfig.io",
-}
-
-func init() {
-	manager = &autocert.Manager{
-		Cache:  autocert.DirCache("~/.acme_cache"),
-		Prompt: autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(validDomains...),
-		Email: "george@shamm.as",
-	} //).HTTPHandler(nil))
-}
-
-// Logger is a simple log handler, out puts in the standard of apache access log common.
-// See http://httpd.apache.org/docs/2.2/logs.html#accesslog
-func Logger() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		t := time.Now()
-		ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
-		if err != nil {
-			c.Abort()
-		}
-		cfIP := net.ParseIP(c.Request.Header.Get("CF-Connecting-IP"))
-		if cfIP != nil {
-			ip.IP = cfIP
-		}
-
-		// before request
-		c.Next()
-		// after request
-
-		user := "-"
-		if c.Request.URL.User != nil {
-			user = c.Request.URL.User.Username()
-		}
-
-		latency := time.Since(t)
-
-		// This is the format of Apache Log Common, with an additional field of latency
-		fmt.Printf("%v - %v [%v] \"%v %v %v\" %v %v %v\n",
-			ip.IP, user, t.Format(time.RFC3339), c.Request.Method, c.Request.URL.Path,
-			c.Request.Proto, c.Writer.Status(), c.Request.ContentLength, latency)
-	}
-}
 
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
@@ -175,26 +122,19 @@ func mainHandler(c *gin.Context) {
 
 }
 
-// FileServer is a basic file serve handler, this is just here as an example.
-// gin.Static() should be used instead
-func FileServer(root string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		file := c.Params.ByName("file")
-		if !strings.HasPrefix(file, "/") {
-			file = "/" + file
-		}
-		http.ServeFile(c.Writer, c.Request, path.Join(root, path.Clean(file)))
+func getEnvWithDefault(key string, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
 	}
+	return value
 }
 
 func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.Use(static.Serve("/.well-known", static.LocalFile("/srv/http/.well-known", false)))
-	//r.Use(Logger())
 	r.LoadHTMLGlob("templates/*")
 
-	//r.GET("/.well-known/", FileServer("/srv/http/.well-known"))
 	for _, route := range []string{
 		"ip", "ua", "port", "lang", "encoding", "method",
 		"mime", "referer", "forwarded", "country_code",
@@ -203,8 +143,6 @@ func main() {
 		r.GET(fmt.Sprintf("/%s", route), mainHandler)
 		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
 	}
-	//r.GET("/:field", mainHandler)
-	// r.GET(".well-known/:unused", gin.WrapH(manager.HTTPHandler(r)))
 	r.GET("/", mainHandler)
 
 	errc := make(chan error)
@@ -214,25 +152,12 @@ func main() {
 		}
 	}(errc)
 
-	port := os.Getenv("PORT")
-	sslport := os.Getenv("SSLPORT")
-	host := os.Getenv("HOST")
+	host := getEnvWithDefault("HOST", "")
+	port := getEnvWithDefault("PORT", "8080")
 
-	if port == "" {
-		port = "8080"
-	}
-	if sslport == "" {
-		sslport = "8443"
-	}
-
-	// go func(errc chan error) {
-	// 	s := http.Server{
-	// 		Addr:      fmt.Sprintf("%s:%s", host, sslport),
-	// 		Handler:   r,
-	// 		TLSConfig: manager.TLSConfig(),
-	// 	}
-	// 	errc <- s.ListenAndServeTLS("", "")
-	// }(errc)
+	tlsport := getEnvWithDefault("TLSPORT", "8443")
+	tlscert := getEnvWithDefault("TLSCERT", "/opt/ifconfig/.cf/ifconfig.io.crt")
+	tlskey := getEnvWithDefault("TLSKEY", "/opt/ifconfig/.cf/ifconfig.io.key")
 
 	go func(errc chan error) {
 		errc <- r.Run(fmt.Sprintf("%s:%s", host, port))
@@ -240,11 +165,9 @@ func main() {
 
 	go func(errc chan error) {
 		errc <- r.RunTLS(
-			fmt.Sprintf("%s:%s", host, sslport),
-			"/opt/ifconfig/.cf/ifconfig.io.crt",
-			"/opt/ifconfig/.cf/ifconfig.io.key")
+			fmt.Sprintf("%s:%s", host, tlsport),
+			tlscert, tlskey)
 	}(errc)
-
 
 	fmt.Println(<-errc)
 }
