@@ -1,0 +1,13 @@
+version: "3.4"
+
+services:
+  ifconfig:
+    image: ifconfig.io:latest
+    build:
+      context: ./
+      target: production
+    ports:
+      - ${PORT:-8080}:8080
+    environment:
+      TLS: ${TLS:-0}
+      HOSTNAME: ${HOSTNAME}
