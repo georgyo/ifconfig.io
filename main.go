@@ -11,6 +11,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Configuration struct {
+	hostname	string 	// Displayed Hostname
+	host		string 	// Listened Host
+	port		string 	// HTTP Port
+	tls 		bool	// TLS enabled
+	tlscert		string	// TLS Cert Path
+	tlskey		string	// TLS Cert Key Path
+	tlsport		string	// HTTPS Port
+}
+
+var configuration = Configuration{}
+
+func init() {
+	hostname := getEnvWithDefault("HOSTNAME", "ifconfig.io")
+
+	host := getEnvWithDefault("HOST", "")
+	port := getEnvWithDefault("PORT", "8080")
+
+	tlsenabled := getEnvWithDefault("TLS", "0")
+	tlsport := getEnvWithDefault("TLSPORT", "8443")
+	tlscert := getEnvWithDefault("TLSCERT", "/opt/ifconfig/.cf/ifconfig.io.crt")
+	tlskey := getEnvWithDefault("TLSKEY", "/opt/ifconfig/.cf/ifconfig.io.key")
+
+	configuration = Configuration{
+		hostname: hostname,
+		host: host,
+		port: port,
+		tls: tlsenabled == "1",
+		tlscert: tlscert,
+		tlskey: tlskey,
+		tlsport: tlsport,
+	}
+}
+
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
@@ -60,7 +94,7 @@ func mainHandler(c *gin.Context) {
 	//	return
 	//}
 
-	c.Set("ifconfig_hostname", getEnvWithDefault("HOSTNAME", "ifconfig.io"))
+	c.Set("ifconfig_hostname", configuration.hostname)
 
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
@@ -154,23 +188,16 @@ func main() {
 		}
 	}(errc)
 
-	host := getEnvWithDefault("HOST", "")
-	port := getEnvWithDefault("PORT", "8080")
-
-	tlsenabled := getEnvWithDefault("TLS", "0")
-	tlsport := getEnvWithDefault("TLSPORT", "8443")
-	tlscert := getEnvWithDefault("TLSCERT", "/opt/ifconfig/.cf/ifconfig.io.crt")
-	tlskey := getEnvWithDefault("TLSKEY", "/opt/ifconfig/.cf/ifconfig.io.key")
 
 	go func(errc chan error) {
-		errc <- r.Run(fmt.Sprintf("%s:%s", host, port))
+		errc <- r.Run(fmt.Sprintf("%s:%s", configuration.host, configuration.port))
 	}(errc)
 
-	if tlsenabled == "1" {
+	if configuration.tls {
 		go func(errc chan error) {
 			errc <- r.RunTLS(
-			fmt.Sprintf("%s:%s", host, tlsport),
-			tlscert, tlskey)
+			fmt.Sprintf("%s:%s", configuration.host, configuration.tlsport),
+			configuration.tlscert, configuration.tlskey)
 		}(errc)
 	}
 
