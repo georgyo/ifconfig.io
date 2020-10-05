@@ -9,12 +9,12 @@
       /* Customizations. */
       li.list-group-item{overflow:auto;padding-top:6px;padding-bottom:6px;}header.page-header{margin-top:20px;}a.h1{color:inherit;text-decoration:none;}@media(max-width: 750px){div.col-sm-3{font-weight:700;}}
     </style>
-    <title>ifconfig.io</title>
+    <title>{{ .ifconfig_hostname }}</title>
   </head>
   <body>
     <header class="page-header container">
       <a href="/" class="h1">
-        What is my ip address? - <small>ifconfig.io</small>
+        What is my ip address? - <small>{{ .ifconfig_hostname }}</small>
       </a>
     </header>
     <nav class="container"></nav>
@@ -65,43 +65,43 @@
         </div>
         <ul class="list-group">
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io</div><div class="col-sm-8">{{ .ip }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}</div><div class="col-sm-8">{{ .ip }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/ip</div><div class="col-sm-8">{{ .ip }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/ip</div><div class="col-sm-8">{{ .ip }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/host</div><div class="col-sm-8">{{ .host }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/host</div><div class="col-sm-8">{{ .host }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/country_code</div><div class="col-sm-8">{{ .country_code }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/country_code</div><div class="col-sm-8">{{ .country_code }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/ua</div><div class="col-sm-8">{{ .ua }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/ua</div><div class="col-sm-8">{{ .ua }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/port</div><div class="col-sm-8">{{ .port }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/port</div><div class="col-sm-8">{{ .port }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/lang</div><div class="col-sm-8">{{ .lang }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/lang</div><div class="col-sm-8">{{ .lang }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/encoding</div><div class="col-sm-8">{{ .encoding }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/encoding</div><div class="col-sm-8">{{ .encoding }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/mime</div><div class="col-sm-8">{{ .mime }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/mime</div><div class="col-sm-8">{{ .mime }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/forwarded</div><div class="col-sm-8">{{ .forwarded }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/forwarded</div><div class="col-sm-8">{{ .forwarded }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/all</div><div class="col-sm-8">{{ .hash_as_yaml }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all</div><div class="col-sm-8">{{ .hash_as_yaml }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/all.xml</div><div class="col-sm-8">{{ .hash_as_xml }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all.xml</div><div class="col-sm-8">{{ .hash_as_xml }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl ifconfig.io/all.json</div><div class="col-sm-8">{{ .hash_as_json }}</div>
+            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all.json</div><div class="col-sm-8">{{ .hash_as_json }}</div>
           </li>
         </ul>
       </div>
