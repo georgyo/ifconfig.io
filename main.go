@@ -60,6 +60,8 @@ func mainHandler(c *gin.Context) {
 	//	return
 	//}
 
+	c.Set("ifconfig_hostname", getEnvWithDefault("HOSTNAME", "ifconfig.io"))
+
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
 	c.Set("ua", c.Request.UserAgent())
