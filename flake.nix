@@ -1,6 +1,7 @@
 {
 
   inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs";
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
