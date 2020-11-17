@@ -46,9 +46,25 @@
             '';
 
           });
+
+        ifconfigio-docker = with final;
+          with pkgs;
+          (dockerTools.buildLayeredImage {
+            name = "ifconfig.io";
+            tag = version;
+            created = "now";
+            contents = [ ifconfigio busybox ];
+            config = {
+              Cmd = "/bin/ifconfig.io";
+              WorkingDir = "/usr/lib/ifconfig.io";
+              ExposedPorts = { "8080" = { }; };
+              Env = [ "HOSTNAME=ifconfig.io" "TLS=0" "TLSCERT=" "TLSKEY=" ];
+            };
+          });
       };
-      packages =
-        forAllSystems (system: { inherit (nixpkgsFor.${system}) ifconfigio; });
+      packages = forAllSystems (system: {
+        inherit (nixpkgsFor.${system}) ifconfigio ifconfigio-docker;
+      });
       defaultPackage =
         forAllSystems (system: self.packages.${system}.ifconfigio);
 
