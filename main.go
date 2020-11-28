@@ -154,7 +154,11 @@ func mainHandler(c *gin.Context) {
 		c.String(404, "Not Found")
 		return
 	}
-	c.String(200, fmt.Sprintln(fieldResult))
+	if wantsJSON {
+		c.JSON(200, fieldResult)
+	} else {
+		c.String(200, fmt.Sprintln(fieldResult))
+	}
 
 }
 
