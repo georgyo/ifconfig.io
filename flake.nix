@@ -1,13 +1,15 @@
 {
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
     };
+    flake-utils.url = "github:numtide/flake-utils";
+    nix-bundle = {url = "github:matthewbauer/nix-bundle"; inputs.nixpkgs.follows = "nixpkgs"; };
   };
-  outputs = { self, nixpkgs, ... }:
+  outputs = { self, nixpkgs, flake-utils, nix-bundle, ... }:
     let
 
       version = builtins.replaceStrings [ "\n" ] [ "" ]
@@ -21,20 +23,12 @@
 
       officialRelease = false;
 
-      systems = [ "x86_64-linux" "i686-linux" "aarch64-linux" "x86_64-darwin" ];
-      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
+    in flake-utils.lib.eachDefaultSystem (system:
+      let pkgs = nixpkgs.legacyPackages.${system};
+      in rec {
 
-      # Memoize nixpkgs for different platforms for efficiency.
-      nixpkgsFor = forAllSystems (system:
-        import nixpkgs {
-          inherit system;
-          overlays = [ self.overlay ];
-        });
-    in {
-      overlay = final: prev: {
-        ifconfigio = with final;
-          with pkgs;
-          (buildGoModule {
+        packages = flake-utils.lib.flattenTree rec {
+          ifconfigio = pkgs.buildGoModule {
             name = "ifconfig.io-${version}";
 
             src = self;
@@ -44,40 +38,27 @@
               mkdir -p $out/usr/lib/ifconfig.io/
               cp -r ./templates $out/usr/lib/ifconfig.io
             '';
+          };
 
-          });
-
-        ifconfigio-docker = with final;
-          with pkgs;
-          (dockerTools.buildLayeredImage {
+          docker-image = pkgs.dockerTools.buildLayeredImage {
             name = "ifconfig.io";
             tag = version;
             created = "now";
-            contents = [ ifconfigio busybox ];
+            contents = [ ifconfigio pkgs.busybox ];
             config = {
               Cmd = "/bin/ifconfig.io";
               WorkingDir = "/usr/lib/ifconfig.io";
               ExposedPorts = { "8080" = { }; };
               Env = [ "HOSTNAME=ifconfig.io" "TLS=0" "TLSCERT=" "TLSKEY=" ];
             };
-          });
-      };
-      packages = forAllSystems (system: {
-        inherit (nixpkgsFor.${system}) ifconfigio ifconfigio-docker;
-      });
-      defaultPackage =
-        forAllSystems (system: self.packages.${system}.ifconfigio);
+          };
 
-      nixosModules.ifconfigio = { pkgs, ... }: {
-        nixpkgs.overlays = [ self.overlay ];
-        systemd.packages = [ pkgs.ifconfigio ];
-        users.users.ifconfigio = {
-          description = "ifconfig.io daemon user";
-          group = "ifconfigio";
-          isSystemUser = true;
         };
-        users.groups.ifconfigio = { };
-      };
+        defaultPackage = packages.ifconfigio;
+        apps.ifconfigio =  { type = "app"; program =  "${packages.ifconfigio}/bin/ifconfig.io"; };
+        defaultApp = apps.ifconfigio;
 
-    };
+        defaultBundler = nix-bundle.bundlers.nix-bundle;
+
+      });
 }
