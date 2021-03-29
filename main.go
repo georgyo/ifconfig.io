@@ -12,13 +12,14 @@ import (
 )
 
 type Configuration struct {
-	hostname	string 	// Displayed Hostname
-	host		string 	// Listened Host
-	port		string 	// HTTP Port
-	tls 		bool	// TLS enabled
-	tlscert		string	// TLS Cert Path
-	tlskey		string	// TLS Cert Key Path
-	tlsport		string	// HTTPS Port
+	hostname string // Displayed Hostname
+	host     string // Listened Host
+	port     string // HTTP Port
+	ipheader string // Header to overwrite the remote IP
+	tls      bool   // TLS enabled
+	tlscert  string // TLS Cert Path
+	tlskey   string // TLS Cert Key Path
+	tlsport  string // HTTPS Port
 }
 
 var configuration = Configuration{}
@@ -29,6 +30,9 @@ func init() {
 	host := getEnvWithDefault("HOST", "")
 	port := getEnvWithDefault("PORT", "8080")
 
+	// Most common alternative would be X-Forwarded-For
+	ipheader := getEnvWithDefault("FORWARD_IP_HEADER", "CF-Connecting-IP")
+
 	tlsenabled := getEnvWithDefault("TLS", "0")
 	tlsport := getEnvWithDefault("TLSPORT", "8443")
 	tlscert := getEnvWithDefault("TLSCERT", "/opt/ifconfig/.cf/ifconfig.io.crt")
@@ -36,12 +40,13 @@ func init() {
 
 	configuration = Configuration{
 		hostname: hostname,
-		host: host,
-		port: port,
-		tls: tlsenabled == "1",
-		tlscert: tlscert,
-		tlskey: tlskey,
-		tlsport: tlsport,
+		host:     host,
+		port:     port,
+		ipheader: ipheader,
+		tls:      tlsenabled == "1",
+		tlscert:  tlscert,
+		tlskey:   tlskey,
+		tlsport:  tlsport,
 	}
 }
 
@@ -71,9 +76,9 @@ func mainHandler(c *gin.Context) {
 		c.Abort()
 	}
 
-	cfIP := net.ParseIP(c.Request.Header.Get("CF-Connecting-IP"))
-	if cfIP != nil {
-		ip.IP = cfIP
+	header_ip := net.ParseIP(c.Request.Header.Get(configuration.ipheader))
+	if header_ip != nil {
+		ip.IP = header_ip
 	}
 
 	if fields[0] == "porttest" {
@@ -192,7 +197,6 @@ func main() {
 		}
 	}(errc)
 
-
 	go func(errc chan error) {
 		errc <- r.Run(fmt.Sprintf("%s:%s", configuration.host, configuration.port))
 	}(errc)
@@ -200,8 +204,8 @@ func main() {
 	if configuration.tls {
 		go func(errc chan error) {
 			errc <- r.RunTLS(
-			fmt.Sprintf("%s:%s", configuration.host, configuration.tlsport),
-			configuration.tlscert, configuration.tlskey)
+				fmt.Sprintf("%s:%s", configuration.host, configuration.tlsport),
+				configuration.tlscert, configuration.tlskey)
 		}(errc)
 	}
 
