@@ -9,17 +9,19 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	proxyproto "github.com/pires/go-proxyproto"
 )
 
 type Configuration struct {
-	hostname string // Displayed Hostname
-	host     string // Listened Host
-	port     string // HTTP Port
-	ipheader string // Header to overwrite the remote IP
-	tls      bool   // TLS enabled
-	tlscert  string // TLS Cert Path
-	tlskey   string // TLS Cert Key Path
-	tlsport  string // HTTPS Port
+	hostname       string // Displayed Hostname
+	host           string // Listened Host
+	port           string // HTTP Port
+	proxy_listener string // Proxy Protocol Listener
+	ipheader       string // Header to overwrite the remote IP
+	tls            bool   // TLS enabled
+	tlscert        string // TLS Cert Path
+	tlskey         string // TLS Cert Key Path
+	tlsport        string // HTTPS Port
 }
 
 var configuration = Configuration{}
@@ -29,6 +31,7 @@ func init() {
 
 	host := getEnvWithDefault("HOST", "")
 	port := getEnvWithDefault("PORT", "8080")
+	proxy_listener := getEnvWithDefault("PROXY_PROTOCOL_ADDR", "")
 
 	// Most common alternative would be X-Forwarded-For
 	ipheader := getEnvWithDefault("FORWARD_IP_HEADER", "CF-Connecting-IP")
@@ -39,14 +42,15 @@ func init() {
 	tlskey := getEnvWithDefault("TLSKEY", "/opt/ifconfig/.cf/ifconfig.io.key")
 
 	configuration = Configuration{
-		hostname: hostname,
-		host:     host,
-		port:     port,
-		ipheader: ipheader,
-		tls:      tlsenabled == "1",
-		tlscert:  tlscert,
-		tlskey:   tlskey,
-		tlsport:  tlsport,
+		hostname:       hostname,
+		host:           host,
+		port:           port,
+		proxy_listener: proxy_listener,
+		ipheader:       ipheader,
+		tls:            tlsenabled == "1",
+		tlscert:        tlscert,
+		tlskey:         tlskey,
+		tlsport:        tlsport,
 	}
 }
 
@@ -206,6 +210,19 @@ func main() {
 			errc <- r.RunTLS(
 				fmt.Sprintf("%s:%s", configuration.host, configuration.tlsport),
 				configuration.tlscert, configuration.tlskey)
+		}(errc)
+	}
+
+	if configuration.proxy_listener != "" {
+		go func(errc chan error) {
+			list, err := net.Listen("tcp", configuration.proxy_listener)
+			if err != nil {
+				errc <- err
+				return
+			}
+			proxyListener := &proxyproto.Listener{Listener: list}
+			defer proxyListener.Close()
+			errc <- r.RunListener(proxyListener)
 		}(errc)
 	}
 
