@@ -80,7 +80,7 @@ func mainHandler(c *gin.Context) {
 		c.Abort()
 	}
 
-	header_ip := net.ParseIP(c.Request.Header.Get(configuration.ipheader))
+	header_ip := net.ParseIP(strings.Split(c.Request.Header.Get(configuration.ipheader), ",")[0])
 	if header_ip != nil {
 		ip.IP = header_ip
 	}
