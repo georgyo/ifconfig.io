@@ -105,9 +105,11 @@ func mainHandler(c *gin.Context) {
 
 	c.Set("ifconfig_hostname", configuration.hostname)
 
+	ua := c.Request.UserAgent()
+
 	c.Set("ip", ip.IP.String())
 	c.Set("port", ip.Port)
-	c.Set("ua", c.Request.UserAgent())
+	c.Set("ua", ua)
 	c.Set("lang", c.Request.Header.Get("Accept-Language"))
 	c.Set("encoding", c.Request.Header.Get("Accept-Encoding"))
 	c.Set("method", c.Request.Method)
@@ -116,11 +118,9 @@ func mainHandler(c *gin.Context) {
 	c.Set("forwarded", c.Request.Header.Get("X-Forwarded-For"))
 	c.Set("country_code", c.Request.Header.Get("CF-IPCountry"))
 
-	ua := strings.Split(c.Request.UserAgent(), "/")
-
 	// Only lookup hostname if the results are going to need it.
 	// if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
-	if stringInSlice(fields[0], []string{"host"}) || (fields[0] == "" && ua[0] != "curl") {
+	if stringInSlice(fields[0], []string{"host"}) || (fields[0] == "" && !isReqFromCmdLine(ua)) {
 		hostnames, err := net.LookupAddr(ip.IP.String())
 		if err != nil {
 			c.Set("host", "")
@@ -129,15 +129,13 @@ func mainHandler(c *gin.Context) {
 		}
 	}
 
-	wantsJSON := false
-	if len(fields) >= 2 && fields[1] == "json" {
-		wantsJSON = true
-	}
+	wantsJSON := len(fields) >= 2 && fields[1] == "json"
 
 	switch fields[0] {
 	case "":
-		//If the user is using curl, then we should just return the IP, else we show the home page.
-		if ua[0] == "curl" {
+		// If the user is using a command line agent like curl/HTTPie,
+		// then we should just return the IP, else we show the home page.
+		if isReqFromCmdLine(ua) {
 			c.String(200, fmt.Sprintln(ip.IP))
 		} else {
 			c.HTML(200, "index.html", c.Keys)
@@ -227,4 +225,8 @@ func main() {
 	}
 
 	fmt.Println(<-errc)
+}
+
+func isReqFromCmdLine(ua string) bool {
+	return strings.HasPrefix(ua, "curl") || strings.HasPrefix(ua, "HTTPie")
 }
