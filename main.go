@@ -157,10 +157,15 @@ func mainHandler(c *gin.Context) {
 		}
 		return
 	case "headers":
-		c.JSON(200, c.Request.Header)
+    if wantsJS {
+      c.Writer.Header().Set("Content-Type", "application/javascript")
+      response, _ := json.Marshal(c.Request.Header)
+      c.String(200, "ifconfig_io = %v\n", string(response))
+    } else {
+    c.JSON(200, c.Request.Header)
+    }
 		return
 	}
-
 	fieldResult, exists := c.Get(fields[0])
 	if !exists {
 		c.String(404, "Not Found")
@@ -168,7 +173,11 @@ func mainHandler(c *gin.Context) {
 	}
 	if wantsJSON {
 		c.JSON(200, fieldResult)
-	} else {
+	} else if wantsJS {
+      c.Writer.Header().Set("Content-Type", "application/javascript")
+      response, _ := json.Marshal(map[string]interface{}{fields[0]: fieldResult})
+      c.String(200, "ifconfig_io = %v\n", string(response))
+  } else {
 		c.String(200, fmt.Sprintln(fieldResult))
 	}
 
@@ -194,8 +203,8 @@ func main() {
 	} {
 		r.GET(fmt.Sprintf("/%s", route), mainHandler)
 		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
+		r.GET(fmt.Sprintf("/%s.js", route), mainHandler)
 	}
-	r.GET("/all.js", mainHandler)
 	r.GET("/", mainHandler)
 
 	errc := make(chan error)

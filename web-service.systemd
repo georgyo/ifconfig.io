@@ -1,0 +1,24 @@
+[Unit]
+Description=ifconfig.io web service
+ConditionPathExists=/opt/ifconfig.io
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment="GIN_MODE=release"
+Restart=on-failure
+RestartSec=10
+startLimitIntervalSec=60
+
+WorkingDirectory=/opt/ifconfig.io
+ExecStart=/opt/ifconfig.io/server
+
+PermissionsStartOnly=true
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=web-server
+
+[Install]
+WantedBy=multi-user.target
