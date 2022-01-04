@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	proxyproto "github.com/pires/go-proxyproto"
 )
@@ -130,6 +130,7 @@ func mainHandler(c *gin.Context) {
 	}
 
 	wantsJSON := len(fields) >= 2 && fields[1] == "json"
+	wantsJS := len(fields) >= 2 && fields[1] == "js"
 
 	switch fields[0] {
 	case "":
@@ -147,6 +148,10 @@ func mainHandler(c *gin.Context) {
 	case "all":
 		if wantsJSON {
 			c.JSON(200, c.Keys)
+		} else if wantsJS {
+			c.Writer.Header().Set("Content-Type", "application/javascript")
+			response, _ := json.Marshal(c.Keys)
+			c.String(200, "ifconfig_io = %v\n", string(response))
 		} else {
 			c.String(200, "%v", c.Keys)
 		}
@@ -190,6 +195,7 @@ func main() {
 		r.GET(fmt.Sprintf("/%s", route), mainHandler)
 		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
 	}
+	r.GET("/all.js", mainHandler)
 	r.GET("/", mainHandler)
 
 	errc := make(chan error)
