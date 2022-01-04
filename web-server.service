@@ -1,0 +1,24 @@
+[Unit]
+Description=divulge.link web service
+ConditionPathExists=/opt/divulge.link
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+
+Restart=on-failure
+RestartSec=10
+startLimitIntervalSec=60
+
+WorkingDirectory=/opt/divulge.link
+ExecStart=/opt/divulge.link/start_server
+
+PermissionsStartOnly=true
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=web-server
+
+[Install]
+WantedBy=multi-user.target
