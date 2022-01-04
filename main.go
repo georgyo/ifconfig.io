@@ -1,15 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	proxyproto "github.com/pires/go-proxyproto"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-	"encoding/json"
-	"github.com/gin-gonic/gin"
-	proxyproto "github.com/pires/go-proxyproto"
 )
 
 type Configuration struct {
@@ -157,13 +157,13 @@ func mainHandler(c *gin.Context) {
 		}
 		return
 	case "headers":
-    if wantsJS {
-      c.Writer.Header().Set("Content-Type", "application/javascript")
-      response, _ := json.Marshal(c.Request.Header)
-      c.String(200, "ifconfig_io = %v\n", string(response))
-    } else {
-    c.JSON(200, c.Request.Header)
-    }
+		if wantsJS {
+			c.Writer.Header().Set("Content-Type", "application/javascript")
+			response, _ := json.Marshal(c.Request.Header)
+			c.String(200, "ifconfig_io = %v\n", string(response))
+		} else {
+			c.JSON(200, c.Request.Header)
+		}
 		return
 	}
 	fieldResult, exists := c.Get(fields[0])
@@ -174,10 +174,10 @@ func mainHandler(c *gin.Context) {
 	if wantsJSON {
 		c.JSON(200, fieldResult)
 	} else if wantsJS {
-      c.Writer.Header().Set("Content-Type", "application/javascript")
-      response, _ := json.Marshal(map[string]interface{}{fields[0]: fieldResult})
-      c.String(200, "ifconfig_io = %v\n", string(response))
-  } else {
+		c.Writer.Header().Set("Content-Type", "application/javascript")
+		response, _ := json.Marshal(map[string]interface{}{fields[0]: fieldResult})
+		c.String(200, "ifconfig_io = %v\n", string(response))
+	} else {
 		c.String(200, fmt.Sprintln(fieldResult))
 	}
 
