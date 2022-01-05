@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	proxyproto "github.com/pires/go-proxyproto"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	proxyproto "github.com/pires/go-proxyproto"
 )
 
 type Configuration struct {
@@ -243,5 +244,10 @@ func main() {
 }
 
 func isReqFromCmdLine(ua string) bool {
-	return strings.HasPrefix(ua, "curl") || strings.HasPrefix(ua, "HTTPie")
+	parts := strings.SplitN(ua, "/", 2)
+	switch parts[0] {
+	case "curl", "HTTPie", "httpie-go", "Wget", "fetch libfetch", "Go", "Go-http-client", "ddclient", "Mikrotik", "xh":
+		return true
+	}
+	return false
 }
