@@ -118,14 +118,13 @@ func mainHandler(c *gin.Context) {
 	c.Set("referer", c.Request.Header.Get("Referer"))
 	c.Set("forwarded", c.Request.Header.Get("X-Forwarded-For"))
 	c.Set("country_code", c.Request.Header.Get("CF-IPCountry"))
+	c.Set("host", ip.IP.String())
 
 	// Only lookup hostname if the results are going to need it.
 	// if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
-	if stringInSlice(fields[0], []string{"host"}) || (fields[0] == "" && !isReqFromCmdLine(ua)) {
+	if fields[0] == "host" || (fields[0] == "" && !isReqFromCmdLine(ua)) {
 		hostnames, err := net.LookupAddr(ip.IP.String())
-		if err != nil {
-			c.Set("host", "")
-		} else {
+		if err == nil {
 			c.Set("host", hostnames[0])
 		}
 	}
@@ -200,7 +199,7 @@ func main() {
 	for _, route := range []string{
 		"ip", "ua", "port", "lang", "encoding", "method",
 		"mime", "referer", "forwarded", "country_code",
-		"all", "headers", "porttest",
+		"all", "headers", "porttest", "host",
 	} {
 		r.GET(fmt.Sprintf("/%s", route), mainHandler)
 		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
