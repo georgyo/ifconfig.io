@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	json "github.com/json-iterator/go"
 
 	"github.com/gin-gonic/gin"
 	proxyproto "github.com/pires/go-proxyproto"
@@ -153,7 +154,8 @@ func mainHandler(c *gin.Context) {
 			response, _ := json.Marshal(c.Keys)
 			c.String(200, "ifconfig_io = %v\n", string(response))
 		} else {
-			c.String(200, "%v", c.Keys)
+			c.Writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			c.YAML(200, c.Keys)
 		}
 		return
 	case "headers":

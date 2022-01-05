@@ -40,6 +40,8 @@
             src = self;
             vendorSha256 = "sha256-KUgKselGjYI0I1zT/LB48pksswNXLbrgBM6LtYPeT/Q=";
 
+            tags = [ "jsoniter" ];
+
             postInstall = ''
               mkdir -p $out/usr/lib/ifconfig.io/
               cp -r ./templates $out/usr/lib/ifconfig.io

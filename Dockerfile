@@ -18,7 +18,7 @@ RUN go mod download
 COPY main.go .
 
 # Build the application
-RUN go build -o main .
+RUN go build -tags=jsoniter -o main .
 
 # Move to /dist directory as the place for resulting binary folder
 WORKDIR /dist
