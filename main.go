@@ -175,8 +175,8 @@ func mainHandler(c *gin.Context) {
 		c.JSON(200, fieldResult)
 	} else if wantsJS {
 		c.Writer.Header().Set("Content-Type", "application/javascript")
-		response, _ := json.Marshal(map[string]interface{}{fields[0]: fieldResult})
-		c.String(200, "ifconfig_io = %v\n", string(response))
+		response, _ := json.Marshal(fieldResult)
+		c.String(200, "%v = %v\n", fields[0], string(response))
 	} else {
 		c.String(200, fmt.Sprintln(fieldResult))
 	}
