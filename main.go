@@ -247,7 +247,7 @@ func main() {
 func isReqFromCmdLine(ua string) bool {
 	parts := strings.SplitN(ua, "/", 2)
 	switch parts[0] {
-	case "curl", "HTTPie", "httpie-go", "Wget", "fetch libfetch", "Go", "Go-http-client", "ddclient", "Mikrotik", "xh":
+	case "curl", "HTTPie", "httpie-go", "Wget", "fetch libfetch", "Go", "Go-http-client", "ddclient", "Mikrotik", "xh", "WindowsPowerShell", "PowerShell":
 		return true
 	}
 	return false
