@@ -245,6 +245,28 @@ func main() {
 }
 
 func isReqFromCmdLine(ua string) bool {
+
+	// Example User Agents
+	// curl/7.83.1
+	// Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.19044; en-US) PowerShell/7.2.4
+
+	// In the case of powershell, we have to look at only the last segment.
+	// We could fully parse the user agent, but that would create a lot of garbage.
+	// We simply look at the last word.
+	// A micro optimization would be to do the search in reverse and break on first match, but
+	// I find that harder to read.
+	lastSpaceIndex := 0
+	for i, c := range ua {
+		// Protect if the space is the very last symbol.
+		if i == len(ua)-1 {
+			break
+		}
+		if string(c) == " " {
+			lastSpaceIndex = i + 1
+		}
+	}
+	ua = ua[lastSpaceIndex:]
+
 	parts := strings.SplitN(ua, "/", 2)
 	switch parts[0] {
 	case "curl", "HTTPie", "httpie-go", "Wget", "fetch libfetch", "Go", "Go-http-client", "ddclient", "Mikrotik", "xh", "WindowsPowerShell", "PowerShell":
