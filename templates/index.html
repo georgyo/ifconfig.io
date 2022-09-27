@@ -9,6 +9,15 @@
       body{margin:0}footer,header,main,nav{display:block}a{background:0 0}a:active,a:hover{outline:0}small{font-size:80%}@media print{*{color:#000!important;text-shadow:none!important;background:0 0!important;-webkit-box-shadow:none!important;box-shadow:none!important}a,a:visited{text-decoration:underline}a[href]:after{content:" (" attr(href) ")"}p{orphans:3;widows:3}}*{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.42857143;color:#333;background-color:#fff}a{color:#428bca;text-decoration:none}a:focus,a:hover{color:#2a6496;text-decoration:underline}a:focus{outline:thin dotted;outline:5px auto -webkit-focus-ring-color;outline-offset:-2px}.h1,h4{font-family:inherit;font-weight:500;line-height:1.1;color:inherit}.h1 small{font-weight:400;line-height:1;color:#777}.h1{margin-top:20px;margin-bottom:10px}.h1 small{font-size:65%}h4{margin-top:10px;margin-bottom:10px}.h1{font-size:36px}h4{font-size:18px}p{margin:0 0 10px}small{font-size:85%}.text-center{text-align:center}.page-header{padding-bottom:9px;margin:40px 0 20px;border-bottom:1px solid #eee}ul{margin-top:0;margin-bottom:10px}.container{padding-right:15px;padding-left:15px;margin-right:auto;margin-left:auto}@media (min-width:768px){.container{width:750px}}@media (min-width:992px){.container{width:970px}}@media (min-width:1200px){.container{width:1170px}}.col-sm-3,.col-sm-4,.col-sm-8,.col-sm-9{position:relative;min-height:1px;padding-right:15px;padding-left:15px}@media (min-width:768px){.col-sm-3,.col-sm-4,.col-sm-8,.col-sm-9{float:left}.col-sm-9{width:75%}.col-sm-8{width:66.66666667%}.col-sm-4{width:33.33333333%}.col-sm-3{width:25%}}.list-group{padding-left:0;margin-bottom:20px}.list-group-item{position:relative;display:block;padding:10px 15px;margin-bottom:-1px;background-color:#fff;border:1px solid #ddd}.list-group-item:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.list-group-item:last-child{margin-bottom:0;border-bottom-right-radius:4px;border-bottom-left-radius:4px}.panel{margin-bottom:20px;background-color:#fff;border:1px solid transparent;border-radius:4px;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05)}.panel-heading{padding:10px 15px;border-bottom:1px solid transparent;border-top-left-radius:3px;border-top-right-radius:3px}.panel>.list-group{margin-bottom:0}.panel>.list-group .list-group-item{border-width:1px 0;border-radius:0}.panel>.list-group:last-child .list-group-item:last-child{border-bottom:0;border-bottom-right-radius:3px;border-bottom-left-radius:3px}.panel-heading+.list-group .list-group-item:first-child{border-top-width:0}.panel-default{border-color:#ddd}.panel-default>.panel-heading{color:#333;background-color:#f5f5f5;border-color:#ddd}.container:after,.container:before{display:table;content:" "}.container:after{clear:both}
       /* Customizations. */
       li.list-group-item{overflow:auto;padding-top:6px;padding-bottom:6px;}header.page-header{margin-top:20px;}a.h1{color:inherit;text-decoration:none;}@media(max-width: 750px){div.col-sm-3{font-weight:700;}}
+
+      .unselectable {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
     </style>
     <title>{{ .ifconfig_hostname }}</title>
   </head>
@@ -66,46 +75,46 @@
         </div>
         <ul class="list-group">
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}</div><div class="col-sm-8">{{ .ip }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}</div><div class="col-sm-8">{{ .ip }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/ip</div><div class="col-sm-8">{{ .ip }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/ip</div><div class="col-sm-8">{{ .ip }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/host</div><div class="col-sm-8">{{ .host }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/host</div><div class="col-sm-8">{{ .host }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/country_code</div><div class="col-sm-8">{{ .country_code }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/country_code</div><div class="col-sm-8">{{ .country_code }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/ua</div><div class="col-sm-8">{{ .ua }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/ua</div><div class="col-sm-8">{{ .ua }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/port</div><div class="col-sm-8">{{ .port }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/port</div><div class="col-sm-8">{{ .port }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/lang</div><div class="col-sm-8">{{ .lang }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/lang</div><div class="col-sm-8">{{ .lang }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/encoding</div><div class="col-sm-8">{{ .encoding }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/encoding</div><div class="col-sm-8">{{ .encoding }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/mime</div><div class="col-sm-8">{{ .mime }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/mime</div><div class="col-sm-8">{{ .mime }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/forwarded</div><div class="col-sm-8">{{ .forwarded }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/forwarded</div><div class="col-sm-8">{{ .forwarded }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all</div><div class="col-sm-8">{{ .hash_as_yaml }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/all</div><div class="col-sm-8">{{ .hash_as_yaml }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all.xml</div><div class="col-sm-8">{{ .hash_as_xml }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/all.xml</div><div class="col-sm-8">{{ .hash_as_xml }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all.json</div><div class="col-sm-8">{{ .hash_as_json }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/all.json</div><div class="col-sm-8">{{ .hash_as_json }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4">$ curl {{ .ifconfig_hostname }}/all.js</div><div class="col-sm-8">{{ .hash_as_js }}</div>
+            <div class="col-sm-4"><span class="unselectable">$ </span>curl {{ .ifconfig_hostname }}/all.js</div><div class="col-sm-8">{{ .hash_as_js }}</div>
           </li>
         </ul>
       </div>
