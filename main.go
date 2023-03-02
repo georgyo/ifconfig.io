@@ -20,6 +20,7 @@ type Configuration struct {
 	port           string // HTTP Port
 	proxy_listener string // Proxy Protocol Listener
 	ipheader       string // Header to overwrite the remote IP
+	countryheader  string // Header to find country code associated to remote IP
 	tls            bool   // TLS enabled
 	tlscert        string // TLS Cert Path
 	tlskey         string // TLS Cert Key Path
@@ -38,6 +39,8 @@ func init() {
 	// Most common alternative would be X-Forwarded-For
 	ipheader := getEnvWithDefault("FORWARD_IP_HEADER", "CF-Connecting-IP")
 
+	countryheader := getEnvWithDefault("COUNTRY_CODE_HEADER", "CF-IPCountry")
+
 	tlsenabled := getEnvWithDefault("TLS", "0")
 	tlsport := getEnvWithDefault("TLSPORT", "8443")
 	tlscert := getEnvWithDefault("TLSCERT", "/opt/ifconfig/.cf/ifconfig.io.crt")
@@ -49,6 +52,7 @@ func init() {
 		port:           port,
 		proxy_listener: proxy_listener,
 		ipheader:       ipheader,
+		countryheader:  countryheader,
 		tls:            tlsenabled == "1",
 		tlscert:        tlscert,
 		tlskey:         tlskey,
@@ -118,7 +122,7 @@ func mainHandler(c *gin.Context) {
 	c.Set("mime", c.Request.Header.Get("Accept"))
 	c.Set("referer", c.Request.Header.Get("Referer"))
 	c.Set("forwarded", c.Request.Header.Get("X-Forwarded-For"))
-	c.Set("country_code", c.Request.Header.Get("CF-IPCountry"))
+	c.Set("country_code", c.Request.Header.Get(configuration.countryheader))
 	c.Set("host", ip.IP.String())
 
 	// Only lookup hostname if the results are going to need it.
