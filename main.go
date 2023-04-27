@@ -16,6 +16,7 @@ import (
 
 type Configuration struct {
 	hostname       string // Displayed Hostname
+	cmd_hostname   string // Displayed Hostname for CMD section
 	host           string // Listened Host
 	port           string // HTTP Port
 	proxy_listener string // Proxy Protocol Listener
@@ -31,6 +32,9 @@ var configuration = Configuration{}
 
 func init() {
 	hostname := getEnvWithDefault("HOSTNAME", "ifconfig.io")
+	protocol := getEnvWithDefault("CMD_PROTOCOL", "")
+
+	cmd_hostname := protocol + hostname
 
 	host := getEnvWithDefault("HOST", "")
 	port := getEnvWithDefault("PORT", "8080")
@@ -48,6 +52,7 @@ func init() {
 
 	configuration = Configuration{
 		hostname:       hostname,
+		cmd_hostname:   cmd_hostname,
 		host:           host,
 		port:           port,
 		proxy_listener: proxy_listener,
@@ -110,6 +115,7 @@ func mainHandler(c *gin.Context) {
 	//}
 
 	c.Set("ifconfig_hostname", configuration.hostname)
+	c.Set("ifconfig_cmd_hostname", configuration.cmd_hostname)
 
 	ua := c.Request.UserAgent()
 
