@@ -10,12 +10,8 @@ jobs:
       with:
           # Nix Flakes doesn't work on shallow clones
           fetch-depth: 0
-    - uses: cachix/install-nix-action@v20
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-        extra_nix_config: |
-          experimental-features = nix-command flakes
-          system-features = nixos-test benchmark big-parallel kvm
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@v3
     - run: nix-build
   test:
     strategy:
