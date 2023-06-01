@@ -3,13 +3,13 @@ module github.com/georgyo/ifconfig.io
 go 1.19
 
 require (
-	github.com/gin-gonic/gin v1.9.0
+	github.com/gin-gonic/gin v1.9.1
 	github.com/json-iterator/go v1.1.12
 	github.com/pires/go-proxyproto v0.7.0
 )
 
 require (
-	github.com/bytedance/sonic v1.9.0 // indirect
+	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
