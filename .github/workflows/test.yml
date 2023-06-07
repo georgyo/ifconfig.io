@@ -11,7 +11,7 @@ jobs:
           # Nix Flakes doesn't work on shallow clones
           fetch-depth: 0
     - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v3
+      uses: DeterminateSystems/nix-installer-action@v4
     - run: nix-build
   test:
     strategy:
