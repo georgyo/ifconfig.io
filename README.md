@@ -33,7 +33,7 @@ version: "3.4"
 
 services:
   ifconfig:
-    image: ifconfig.io:latest
+    image: georgyo/ifconfig.io
     ports:
       - 8080:8080
 ```
@@ -45,7 +45,7 @@ version: "3.4"
 
 services:
   ifconfig:
-    image: ifconfig.io:latest
+    image: georgyo/ifconfig.io
     ports:
       - 8080:8080
     environment:
@@ -57,7 +57,7 @@ version: "3.4"
 
 services:
   ifconfig:
-    image: ifconfig.io:latest
+    image: georgyo/ifconfig.io
     ports:
       - 8080:8080
     env_file:
