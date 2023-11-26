@@ -12,10 +12,11 @@
 
       version = builtins.replaceStrings [ "\n" ] [ "" ]
         (builtins.readFile ./.version + versionSuffix);
-      versionSuffix = if officialRelease then
-        ""
-      else
-        "pre${
+      versionSuffix =
+        if officialRelease then
+          ""
+        else
+          "pre${
           nixpkgs.lib.substring 0 8 (self.lastModifiedDate or self.lastModified)
         }_${self.shortRev or "dirty"}";
 
@@ -30,7 +31,8 @@
           inherit system;
           overlays = [ self.overlay ];
         });
-    in {
+    in
+    {
       overlay = final: prev: {
         ifconfigio = with final;
           with pkgs;
@@ -38,7 +40,7 @@
             name = "ifconfig.io-${version}";
 
             src = self;
-            vendorSha256 = "sha256-FnIJff+T5bB3HKET5srQibXnyHjbOVIgcKEoViSY6TA=";
+            vendorHash = "sha256-ZtKaYvPGP7L18pwtglFJJngDAVchiOsLKYWuT5YkcLk=";
 
             tags = [ "jsoniter" ];
 
@@ -70,15 +72,35 @@
       defaultPackage =
         forAllSystems (system: self.packages.${system}.ifconfigio);
 
-      nixosModules.ifconfigio = { pkgs, ... }: {
+      nixosModules.ifconfigio = { pkgs, lib, ... }: {
         nixpkgs.overlays = [ self.overlay ];
-        systemd.packages = [ pkgs.ifconfigio ];
         users.users.ifconfigio = {
           description = "ifconfig.io daemon user";
           group = "ifconfigio";
           isSystemUser = true;
+          home = "/opt/ifconfig";
         };
         users.groups.ifconfigio = { };
+        systemd.services.ifconfigio = {
+          description = "ifconfig.io web service";
+          enable = true;
+          wantedBy = [ "multi-user.target" ];
+          environment = {
+            GIN_MODE = lib.mkDefault "release";
+            TLS = lib.mkDefault "0";
+          };
+          script = ''
+            # For some reason the systemd WorkingDir is not doing what we need
+            # so we `cd` to it explicitly.
+            cd "${pkgs.ifconfigio}/usr/lib/ifconfig.io"
+            exec "${pkgs.ifconfigio}/bin/ifconfig.io"
+          '';
+          serviceConfig = {
+            User = "ifconfigio";
+            WorkingDir = "${pkgs.ifconfigio}/usr/lib/ifconfig.io";
+            LimitNOFILE = 200000;
+          };
+        };
       };
 
     };
