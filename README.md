@@ -22,7 +22,7 @@ Tested to handle 10,000 clients doing 90,000 requests persecond on modest hardwa
 
 # Deployment
 
-You can use the source code directly to deploy your own server. You can also you can use Docker and Docker Compose.
+You can use the source code directly to deploy your own server. You can also use Docker and Docker Compose.
 
 ## Docker-Compose
 
