@@ -12,7 +12,7 @@ Inspired by ifconfig.me, but designed for pure speed. A single server can do 18,
   - [Docker Compose](#docker-compose)
   - [ENVs](#envs)
 
-# Short Summery
+# Short Summary
 
 I used the gin framework as it does several things to ensure that there are no memory allocations on each request, keeping the GC happy and preventing unnessary allocations.
 
