@@ -40,7 +40,7 @@
             name = "ifconfig.io-${version}";
 
             src = self;
-            vendorHash = "sha256-Tk1h2IlfP/ycY9yvlyDQBxSHBRGdPaIC/bx7Kmb5SIE=";
+            vendorHash = "sha256-3PT/0sxn5LCx6nt0U3TFuBKCdSkKVrV5akotUfIvI04=";
 
             tags = [ "jsoniter" ];
 
