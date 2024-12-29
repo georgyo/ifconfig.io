@@ -16,5 +16,5 @@ jobs:
         with:
           name: "georgyo/ifconfig.io"
           rolling: true
-          visibility: "Public"
+          visibility: "public"
           include-output-paths: true
