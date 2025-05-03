@@ -1,13 +1,13 @@
 module github.com/georgyo/ifconfig.io
 
-go 1.23.0
+go 1.24
 
 toolchain go1.24.2
 
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/json-iterator/go v1.1.12
-	github.com/pires/go-proxyproto v0.8.0
+	github.com/pires/go-proxyproto v0.8.1
 )
 
 require (
