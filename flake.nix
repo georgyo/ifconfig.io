@@ -7,40 +7,48 @@
       flake = false;
     };
   };
-  outputs = { self, nixpkgs, ... }:
+  outputs =
+    { self, nixpkgs, ... }:
     let
 
-      version = builtins.replaceStrings [ "\n" ] [ "" ]
-        (builtins.readFile ./.version + versionSuffix);
+      version = builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile ./.version + versionSuffix);
       versionSuffix =
         if officialRelease then
           ""
         else
           "pre${
-          nixpkgs.lib.substring 0 8 (self.lastModifiedDate or self.lastModified)
-        }_${self.shortRev or "dirty"}";
+            nixpkgs.lib.substring 0 8 (self.lastModifiedDate or self.lastModified)
+          }_${self.shortRev or "dirty"}";
 
       officialRelease = false;
 
-      systems = [ "x86_64-linux" "i686-linux" "aarch64-linux" "x86_64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "i686-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+      ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
 
       # Memoize nixpkgs for different platforms for efficiency.
-      nixpkgsFor = forAllSystems (system:
+      nixpkgsFor = forAllSystems (
+        system:
         import nixpkgs {
           inherit system;
           overlays = [ self.overlay ];
-        });
+        }
+      );
     in
     {
       overlay = final: prev: {
-        ifconfigio = with final;
+        ifconfigio =
+          with final;
           with pkgs;
           (buildGoModule {
             name = "ifconfig.io-${version}";
 
             src = self;
-            vendorHash = "sha256-Vui4fzbXw60eXrFTCPn7qfh8lBdqxaEF82YwO/dyekA=";
+            vendorHash = "sha256-fc0xM3Dyfi75tuGMzqAn8dnk/zKpyF5r/8mJaWJ2LFw=";
 
             tags = [ "jsoniter" ];
 
@@ -51,57 +59,69 @@
 
           });
 
-        ifconfigio-docker = with final;
+        ifconfigio-docker =
+          with final;
           with pkgs;
           (dockerTools.buildLayeredImage {
             name = "ifconfig.io";
             tag = version;
             created = "now";
-            contents = [ ifconfigio busybox ];
+            contents = [
+              ifconfigio
+              busybox
+            ];
             config = {
               Cmd = "/bin/ifconfig.io";
               WorkingDir = "/usr/lib/ifconfig.io";
-              ExposedPorts = { "8080" = { }; };
-              Env = [ "HOSTNAME=ifconfig.io" "TLS=0" "TLSCERT=" "TLSKEY=" ];
+              ExposedPorts = {
+                "8080" = { };
+              };
+              Env = [
+                "HOSTNAME=ifconfig.io"
+                "TLS=0"
+                "TLSCERT="
+                "TLSKEY="
+              ];
             };
           });
       };
       packages = forAllSystems (system: {
         inherit (nixpkgsFor.${system}) ifconfigio ifconfigio-docker;
       });
-      defaultPackage =
-        forAllSystems (system: self.packages.${system}.ifconfigio);
+      defaultPackage = forAllSystems (system: self.packages.${system}.ifconfigio);
 
-      nixosModules.ifconfigio = { pkgs, lib, ... }: {
-        nixpkgs.overlays = [ self.overlay ];
-        users.users.ifconfigio = {
-          description = "ifconfig.io daemon user";
-          group = "ifconfigio";
-          isSystemUser = true;
-          home = "/opt/ifconfig";
-        };
-        users.groups.ifconfigio = { };
-        systemd.services.ifconfigio = {
-          description = "ifconfig.io web service";
-          enable = true;
-          wantedBy = [ "multi-user.target" ];
-          environment = {
-            GIN_MODE = lib.mkDefault "release";
-            TLS = lib.mkDefault "0";
+      nixosModules.ifconfigio =
+        { pkgs, lib, ... }:
+        {
+          nixpkgs.overlays = [ self.overlay ];
+          users.users.ifconfigio = {
+            description = "ifconfig.io daemon user";
+            group = "ifconfigio";
+            isSystemUser = true;
+            home = "/opt/ifconfig";
           };
-          script = ''
-            # For some reason the systemd WorkingDir is not doing what we need
-            # so we `cd` to it explicitly.
-            cd "${pkgs.ifconfigio}/usr/lib/ifconfig.io"
-            exec "${pkgs.ifconfigio}/bin/ifconfig.io"
-          '';
-          serviceConfig = {
-            User = "ifconfigio";
-            WorkingDir = "${pkgs.ifconfigio}/usr/lib/ifconfig.io";
-            LimitNOFILE = 200000;
+          users.groups.ifconfigio = { };
+          systemd.services.ifconfigio = {
+            description = "ifconfig.io web service";
+            enable = true;
+            wantedBy = [ "multi-user.target" ];
+            environment = {
+              GIN_MODE = lib.mkDefault "release";
+              TLS = lib.mkDefault "0";
+            };
+            script = ''
+              # For some reason the systemd WorkingDir is not doing what we need
+              # so we `cd` to it explicitly.
+              cd "${pkgs.ifconfigio}/usr/lib/ifconfig.io"
+              exec "${pkgs.ifconfigio}/bin/ifconfig.io"
+            '';
+            serviceConfig = {
+              User = "ifconfigio";
+              WorkingDir = "${pkgs.ifconfigio}/usr/lib/ifconfig.io";
+              LimitNOFILE = 200000;
+            };
           };
         };
-      };
 
     };
 }
