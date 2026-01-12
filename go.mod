@@ -2,7 +2,7 @@ module github.com/georgyo/ifconfig.io
 
 go 1.24.0
 
-toolchain go1.25.1
+toolchain go1.25.5
 
 require (
 	github.com/gin-gonic/gin v1.11.0
