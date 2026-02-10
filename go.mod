@@ -7,7 +7,7 @@ toolchain go1.25.5
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/json-iterator/go v1.1.12
-	github.com/pires/go-proxyproto v0.8.1
+	github.com/pires/go-proxyproto v0.11.0
 )
 
 require (
