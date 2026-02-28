@@ -18,7 +18,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-        - 1.24.x
         - 1.25.x
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
