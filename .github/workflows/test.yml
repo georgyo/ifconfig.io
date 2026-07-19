@@ -10,9 +10,13 @@ jobs:
       with:
           # Nix Flakes doesn't work on shallow clones
           fetch-depth: 0
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v21
-    - uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - uses: NixOS/nix-installer-action@main
+
+    - uses: Mic92/niks3-action@v1
+      with:
+        server-url: https://niks3.fu.io
+
     - run: nix-build
   test:
     strategy:
