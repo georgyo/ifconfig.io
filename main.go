@@ -200,6 +200,13 @@ func getEnvWithDefault(key string, defaultValue string) string {
 }
 
 func main() {
+	// Gin defaults to debug mode, which re-reads and re-parses the HTML
+	// templates from disk on every request. Default to release mode unless the
+	// operator explicitly asked for something else.
+	if os.Getenv(gin.EnvGinMode) == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.LoadHTMLGlob("templates/*")
