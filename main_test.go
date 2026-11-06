@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -19,7 +20,7 @@ func stubLookup(t testing.TB, names []string, err error) *int {
 	t.Helper()
 	calls := 0
 	orig := lookupAddr
-	lookupAddr = func(string) ([]string, error) {
+	lookupAddr = func(context.Context, string) ([]string, error) {
 		calls++
 		return names, err
 	}
