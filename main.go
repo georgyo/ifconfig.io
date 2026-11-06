@@ -5,7 +5,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	json "github.com/json-iterator/go"
 
@@ -25,9 +27,14 @@ type Configuration struct {
 	tlscert        string // TLS Cert Path
 	tlskey         string // TLS Cert Key Path
 	tlsport        string // HTTPS Port
+
+	rdnsTimeout   time.Duration // How long a request waits for reverse DNS
+	rdnsCacheSize int           // Number of reverse DNS results to cache
 }
 
 var configuration = Configuration{}
+
+var hostCache *rdnsCache
 
 func init() {
 	hostname := getEnvWithDefault("HOSTNAME", "ifconfig.io")
@@ -49,6 +56,15 @@ func init() {
 	tlscert := getEnvWithDefault("TLSCERT", "/opt/ifconfig/.cf/ifconfig.io.crt")
 	tlskey := getEnvWithDefault("TLSKEY", "/opt/ifconfig/.cf/ifconfig.io.key")
 
+	rdnsTimeout, err := time.ParseDuration(getEnvWithDefault("REVERSE_DNS_TIMEOUT", "300ms"))
+	if err != nil {
+		panic(fmt.Sprintf("invalid REVERSE_DNS_TIMEOUT: %v", err))
+	}
+	rdnsCacheSize, err := strconv.Atoi(getEnvWithDefault("REVERSE_DNS_CACHE_SIZE", "100000"))
+	if err != nil {
+		panic(fmt.Sprintf("invalid REVERSE_DNS_CACHE_SIZE: %v", err))
+	}
+
 	configuration = Configuration{
 		hostname:       hostname,
 		cmd_hostname:   cmd_hostname,
@@ -61,6 +77,9 @@ func init() {
 		tlscert:        tlscert,
 		tlskey:         tlskey,
 		tlsport:        tlsport,
+
+		rdnsTimeout:   rdnsTimeout,
+		rdnsCacheSize: rdnsCacheSize,
 	}
 }
 
@@ -97,9 +116,8 @@ func mainHandler(c *gin.Context) {
 
 	// Only lookup hostname if the results are going to need it.
 	if fields[0] == "host" || (fields[0] == "" && !isReqFromCmdLine(ua)) {
-		hostnames, err := lookupAddr(ip.IP.String())
-		if err == nil && len(hostnames) > 0 {
-			c.Set("host", hostnames[0])
+		if name, ok := hostCache.Lookup(ip.IP.String(), configuration.rdnsTimeout); ok {
+			c.Set("host", name)
 		}
 	}
 
@@ -155,9 +173,6 @@ func mainHandler(c *gin.Context) {
 
 }
 
-// lookupAddr performs reverse DNS lookups. It is a variable so tests can stub it.
-var lookupAddr = net.LookupAddr
-
 func getEnvWithDefault(key string, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -211,6 +226,8 @@ func newRouter() *gin.Engine {
 	if os.Getenv(gin.EnvGinMode) == "" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	hostCache = newRDNSCache(configuration.rdnsCacheSize)
 
 	r := gin.New()
 	r.Use(gin.Recovery())

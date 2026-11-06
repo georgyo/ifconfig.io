@@ -18,7 +18,7 @@ COPY go.sum .
 RUN go mod download
 
 # Copy the code into the container
-COPY main.go .
+COPY *.go ./
 
 # Build the application
 RUN go build -tags=jsoniter -o main .
