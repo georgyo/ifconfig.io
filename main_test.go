@@ -104,6 +104,10 @@ ua: curl/8.0 "<x>" & ü
 		{"/headers.json", 200, ctJSON, headersJSON},
 		{"/nope", 404, "text/plain", "404 page not found"},
 		{"/all.yaml", 404, "text/plain", "404 page not found"},
+		{"/all.xml", 404, "text/plain", "404 page not found"},
+		{"/request", 404, "text/plain", "404 page not found"},
+		{"/porttest", 404, "text/plain", "404 page not found"},
+		{"/porttest.80", 404, "text/plain", "404 page not found"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
@@ -176,6 +180,15 @@ func TestRootCommandLine(t *testing.T) {
 	}
 }
 
+func TestBadRemoteAddr(t *testing.T) {
+	req := newTestRequest("GET", "/ip")
+	req.RemoteAddr = "garbage"
+	w := serve(newRouter(), req)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("code = %d", w.Code)
+	}
+}
+
 func TestRootBrowser(t *testing.T) {
 	calls := stubLookup(t, []string{"host.example."}, nil)
 	req := newTestRequest("GET", "/")
@@ -195,6 +208,11 @@ func TestRootBrowser(t *testing.T) {
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("body missing %q", want)
+		}
+	}
+	for _, unwanted := range []string{"all.xml", "no value"} {
+		if strings.Contains(body, unwanted) {
+			t.Errorf("body contains %q", unwanted)
 		}
 	}
 	if *calls != 1 {
@@ -218,6 +236,14 @@ func TestHostFallsBackToIP(t *testing.T) {
 	w := serve(newRouter(), newTestRequest("GET", "/host"))
 	if w.Body.String() != testRemoteIP+"\n" {
 		t.Fatalf("body = %q", w.Body.String())
+	}
+}
+
+func TestHostEmptyLookupResult(t *testing.T) {
+	stubLookup(t, []string{}, nil)
+	w := serve(newRouter(), newTestRequest("GET", "/host"))
+	if w.Code != 200 || w.Body.String() != testRemoteIP+"\n" {
+		t.Fatalf("code = %d body = %q", w.Code, w.Body.String())
 	}
 }
 
