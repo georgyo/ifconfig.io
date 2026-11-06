@@ -14,7 +14,7 @@ Inspired by ifconfig.me, but designed for pure speed. A single server can do 18,
 
 # Short Summary
 
-I used the gin framework as it does several things to ensure that there are no memory allocations on each request, keeping the GC happy and preventing unnessary allocations.
+The server is built directly on the Go standard library's net/http. The command line endpoints (`/`, `/ip`, `/all.json`, ...) are written so they do not allocate on each request, keeping the GC happy. Run `go test -bench .` to see per-endpoint numbers.
 
 Tested to handle 10,000 clients doing 90,000 requests persecond on modest hardware with an average response time of 42ms. Easily servicing over 5 million requests in a minute. (Updated June, 2022)
 

@@ -33,7 +33,7 @@
         height: 34px;
       }
     </style>
-    <title>{{ .ifconfig_hostname }}</title>
+    <title>{{ .Hostname }}</title>
   </head>
   <body>
     <div class="popup" id="popup">
@@ -41,7 +41,7 @@
     </div>
     <header class="page-header container">
       <a href="/" class="h1">
-        What is my ip address? - <small>{{ .ifconfig_hostname }}</small>
+        What is my ip address? - <small>{{ .Hostname }}</small>
       </a>
     </header>
     <nav class="container"></nav>
@@ -52,37 +52,37 @@
         </div>
         <ul class="list-group">
           <li class="list-group-item">
-            <div class="col-sm-3">IP Address</div><div class="col-sm-9">{{ .ip }}</div>
+            <div class="col-sm-3">IP Address</div><div class="col-sm-9">{{ .IP }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Remote Host</div><div class="col-sm-9">{{ .host }}</div>
+            <div class="col-sm-3">Remote Host</div><div class="col-sm-9">{{ .Host }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Country Code</div><div class="col-sm-9">{{ .country_code }}</div>
+            <div class="col-sm-3">Country Code</div><div class="col-sm-9">{{ .CountryCode }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">User Agent</div><div class="col-sm-9">{{ .ua }}</div>
+            <div class="col-sm-3">User Agent</div><div class="col-sm-9">{{ .UA }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Port</div><div class="col-sm-9">{{ .port }}</div>
+            <div class="col-sm-3">Port</div><div class="col-sm-9">{{ .Port }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Language</div><div class="col-sm-9">{{ .lang }}</div>
+            <div class="col-sm-3">Language</div><div class="col-sm-9">{{ .Lang }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Referer</div><div class="col-sm-9">{{ .referer }}</div>
+            <div class="col-sm-3">Referer</div><div class="col-sm-9">{{ .Referer }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Method</div><div class="col-sm-9">{{ .method }}</div>
+            <div class="col-sm-3">Method</div><div class="col-sm-9">{{ .Method }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">Encoding</div><div class="col-sm-9">{{ .encoding }}</div>
+            <div class="col-sm-3">Encoding</div><div class="col-sm-9">{{ .Encoding }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">MIME Type</div><div class="col-sm-9">{{ .mime }}</div>
+            <div class="col-sm-3">MIME Type</div><div class="col-sm-9">{{ .Mime }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-3">X-Forwarded-For</div><div class="col-sm-9">{{ .forwarded }}</div>
+            <div class="col-sm-3">X-Forwarded-For</div><div class="col-sm-9">{{ .Forwarded }}</div>
           </li>
         </ul>
       </div>
@@ -92,43 +92,43 @@
         </div>
         <ul class="list-group">
           <li class="list-group-item">
-            <div class="col-sm-4" id="direct_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}</span></div><div class="col-sm-8">{{ .ip }}</div>
+            <div class="col-sm-4" id="direct_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}</span></div><div class="col-sm-8">{{ .IP }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="ip_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/ip</span></div><div class="col-sm-8">{{ .ip }}</div>
+            <div class="col-sm-4" id="ip_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/ip</span></div><div class="col-sm-8">{{ .IP }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="host_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/host</span></div><div class="col-sm-8">{{ .host }}</div>
+            <div class="col-sm-4" id="host_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/host</span></div><div class="col-sm-8">{{ .Host }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="country_code_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/country_code</span></div><div class="col-sm-8">{{ .country_code }}</div>
+            <div class="col-sm-4" id="country_code_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/country_code</span></div><div class="col-sm-8">{{ .CountryCode }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="ua_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/ua</span></div><div class="col-sm-8">{{ .ua }}</div>
+            <div class="col-sm-4" id="ua_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/ua</span></div><div class="col-sm-8">{{ .UA }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="port_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/port</span></div><div class="col-sm-8">{{ .port }}</div>
+            <div class="col-sm-4" id="port_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/port</span></div><div class="col-sm-8">{{ .Port }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="lang_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/lang</span></div><div class="col-sm-8">{{ .lang }}</div>
+            <div class="col-sm-4" id="lang_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/lang</span></div><div class="col-sm-8">{{ .Lang }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="encoding_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/encoding</span></div><div class="col-sm-8">{{ .encoding }}</div>
+            <div class="col-sm-4" id="encoding_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/encoding</span></div><div class="col-sm-8">{{ .Encoding }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="mime_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/mime</span></div><div class="col-sm-8">{{ .mime }}</div>
+            <div class="col-sm-4" id="mime_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/mime</span></div><div class="col-sm-8">{{ .Mime }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="forwarded_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/forwarded</span></div><div class="col-sm-8">{{ .forwarded }}</div>
+            <div class="col-sm-4" id="forwarded_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/forwarded</span></div><div class="col-sm-8">{{ .Forwarded }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="all_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/all</span></div><div class="col-sm-8"></div>
+            <div class="col-sm-4" id="all_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/all</span></div><div class="col-sm-8"></div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="all.json_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/all.json</span></div><div class="col-sm-8"></div>
+            <div class="col-sm-4" id="all.json_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/all.json</span></div><div class="col-sm-8"></div>
           </li>
           <li class="list-group-item">
-            <div class="col-sm-4" id="all.js_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .ifconfig_cmd_hostname }}/all.js</span></div><div class="col-sm-8"></div>
+            <div class="col-sm-4" id="all.js_curl"><span class="unselectable">$ </span><span class="copy_text">curl {{ .CmdHostname }}/all.js</span></div><div class="col-sm-8"></div>
           </li>
         </ul>
       </div>

@@ -47,9 +47,9 @@ func serve(h http.Handler, req *http.Request) *httptest.ResponseRecorder {
 }
 
 const (
-	ctText = "text/plain; charset=utf-8"
-	ctJSON = "application/json; charset=utf-8"
-	ctJS   = "application/javascript"
+	wantText = "text/plain; charset=utf-8"
+	wantJSON = "application/json; charset=utf-8"
+	wantJS   = "application/javascript"
 )
 
 func TestEndpoints(t *testing.T) {
@@ -79,30 +79,30 @@ ua: curl/8.0 "<x>" & ü
 		ct   string
 		body string
 	}{
-		{"/ip", 200, ctText, "203.0.113.7\n"},
-		{"/ip.json", 200, ctJSON, `"203.0.113.7"`},
-		{"/ip.js", 200, ctJS, "ip = \"203.0.113.7\"\n"},
-		{"/port", 200, ctText, "4321\n"},
-		{"/port.json", 200, ctJSON, "4321"},
-		{"/port.js", 200, ctJS, "port = 4321\n"},
-		{"/host", 200, ctText, "host.example.\n"},
-		{"/host.json", 200, ctJSON, `"host.example."`},
-		{"/host.js", 200, ctJS, "host = \"host.example.\"\n"},
-		{"/ua", 200, ctText, testUA + "\n"},
-		{"/ua.json", 200, ctJSON, `"curl/8.0 \"\u003cx\u003e\" \u0026 ü"`},
-		{"/ua.js", 200, ctJS, "ua = \"curl/8.0 \\\"\\u003cx\\u003e\\\" \\u0026 ü\"\n"},
-		{"/lang", 200, ctText, "\n"},
-		{"/encoding", 200, ctText, "\n"},
-		{"/method", 200, ctText, "GET\n"},
-		{"/mime", 200, ctText, "*/*\n"},
-		{"/referer", 200, ctText, "http://a: b#c\n"},
-		{"/forwarded", 200, ctText, "1.1.1.1, 2.2.2.2\n"},
-		{"/country_code", 200, ctText, "US\n"},
-		{"/country_code.json", 200, ctJSON, `"US"`},
-		{"/all", 200, ctText, allYAML},
-		{"/all.json", 200, ctJSON, allJSON},
-		{"/headers", 200, ctJSON, headersJSON},
-		{"/headers.json", 200, ctJSON, headersJSON},
+		{"/ip", 200, wantText, "203.0.113.7\n"},
+		{"/ip.json", 200, wantJSON, `"203.0.113.7"`},
+		{"/ip.js", 200, wantJS, "ip = \"203.0.113.7\"\n"},
+		{"/port", 200, wantText, "4321\n"},
+		{"/port.json", 200, wantJSON, "4321"},
+		{"/port.js", 200, wantJS, "port = 4321\n"},
+		{"/host", 200, wantText, "host.example.\n"},
+		{"/host.json", 200, wantJSON, `"host.example."`},
+		{"/host.js", 200, wantJS, "host = \"host.example.\"\n"},
+		{"/ua", 200, wantText, testUA + "\n"},
+		{"/ua.json", 200, wantJSON, `"curl/8.0 \"\u003cx\u003e\" \u0026 ü"`},
+		{"/ua.js", 200, wantJS, "ua = \"curl/8.0 \\\"\\u003cx\\u003e\\\" \\u0026 ü\"\n"},
+		{"/lang", 200, wantText, "\n"},
+		{"/encoding", 200, wantText, "\n"},
+		{"/method", 200, wantText, "GET\n"},
+		{"/mime", 200, wantText, "*/*\n"},
+		{"/referer", 200, wantText, "http://a: b#c\n"},
+		{"/forwarded", 200, wantText, "1.1.1.1, 2.2.2.2\n"},
+		{"/country_code", 200, wantText, "US\n"},
+		{"/country_code.json", 200, wantJSON, `"US"`},
+		{"/all", 200, wantText, allYAML},
+		{"/all.json", 200, wantJSON, allJSON},
+		{"/headers", 200, wantJSON, headersJSON},
+		{"/headers.json", 200, wantJSON, headersJSON},
 		{"/nope", 404, "text/plain", "404 page not found"},
 		{"/all.yaml", 404, "text/plain", "404 page not found"},
 		{"/all.xml", 404, "text/plain", "404 page not found"},
@@ -130,7 +130,7 @@ ua: curl/8.0 "<x>" & ü
 	for path, want := range map[string]string{"/all.js": allJSON, "/headers.js": headersJSON} {
 		t.Run(path, func(t *testing.T) {
 			w := serve(h, newTestRequest("GET", path))
-			if w.Code != 200 || w.Header().Get("Content-Type") != ctJS {
+			if w.Code != 200 || w.Header().Get("Content-Type") != wantJS {
 				t.Fatalf("code=%d ct=%q", w.Code, w.Header().Get("Content-Type"))
 			}
 			body, ok := strings.CutPrefix(w.Body.String(), "ifconfig_io = ")
@@ -157,6 +157,35 @@ func TestTrailingSlashRedirect(t *testing.T) {
 	w := serve(newRouter(), newTestRequest("GET", "/ip/"))
 	if w.Code != http.StatusMovedPermanently || w.Header().Get("Location") != "/ip" {
 		t.Fatalf("code=%d location=%q", w.Code, w.Header().Get("Location"))
+	}
+	w = serve(newRouter(), newTestRequest("GET", "/all.json/?x=1"))
+	if w.Code != http.StatusMovedPermanently || w.Header().Get("Location") != "/all.json?x=1" {
+		t.Fatalf("code=%d location=%q", w.Code, w.Header().Get("Location"))
+	}
+	w = serve(newRouter(), newTestRequest("GET", "/nope/"))
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("code=%d", w.Code)
+	}
+}
+
+func TestMethods(t *testing.T) {
+	h := newRouter()
+	if w := serve(h, newTestRequest("HEAD", "/ip")); w.Code != 200 {
+		t.Errorf("HEAD /ip: code = %d", w.Code)
+	}
+	for _, m := range []string{"POST", "PUT", "DELETE", "OPTIONS"} {
+		if w := serve(h, newTestRequest(m, "/ip")); w.Code != 404 {
+			t.Errorf("%s /ip: code = %d", m, w.Code)
+		}
+	}
+}
+
+func TestRouteParsing(t *testing.T) {
+	h := newRouter()
+	for _, p := range []string{"/ip.xml", "/ip.json.js", "/.json", "/IP", "/ip.", "//ip", "/ip/x"} {
+		if w := serve(h, newTestRequest("GET", p)); w.Code != 404 {
+			t.Errorf("GET %s: code = %d, want 404", p, w.Code)
+		}
 	}
 }
 

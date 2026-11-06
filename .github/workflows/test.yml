@@ -37,6 +37,4 @@ jobs:
       run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
       if: matrix.os == 'ubuntu-latest'
     - name: Test
-      # Production builds of the gin version use -tags=jsoniter (see Dockerfile
-      # and flake.nix); without it gin cannot encode c.Keys on some Go versions.
-      run: go test -race -tags=jsoniter ./...
+      run: go test -race ./...

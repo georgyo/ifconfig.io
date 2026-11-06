@@ -7,7 +7,6 @@ After=network.target
 Type=simple
 User=root
 Group=root
-Environment="GIN_MODE=release"
 Restart=on-failure
 RestartSec=10
 startLimitIntervalSec=60

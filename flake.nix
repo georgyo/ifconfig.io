@@ -56,9 +56,7 @@
             name = "ifconfig.io-${version}";
 
             src = self;
-            vendorHash = "sha256-A0Ab9AMKd+OnzzxhLNwBU4SJiuwH8SJJ3vWI6fSQRfY=";
-
-            tags = [ "jsoniter" ];
+            vendorHash = "sha256-aSXYTPiKxxJaJkbzZtRrPIYo0g8MKtTcK2yGZ+quDj4=";
 
             postInstall = ''
               mkdir -p $out/usr/lib/ifconfig.io/
@@ -114,7 +112,6 @@
             enable = true;
             wantedBy = [ "multi-user.target" ];
             environment = {
-              GIN_MODE = lib.mkDefault "release";
               TLS = lib.mkDefault "0";
             };
             script = ''
