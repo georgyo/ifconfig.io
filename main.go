@@ -104,6 +104,8 @@ func getEnvWithDefault(key string, defaultValue string) string {
 }
 
 func main() {
+	tuneRuntime()
+
 	r := newRouter()
 
 	errc := make(chan error)
