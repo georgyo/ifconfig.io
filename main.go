@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
-	"slices"
-	"strconv"
 	"strings"
-	"time"
 
 	json "github.com/json-iterator/go"
 
@@ -66,49 +64,19 @@ func init() {
 	}
 }
 
-func stringInSlice(a string, list []string) bool {
-	return slices.Contains(list, a)
-}
-
-func testRemoteTCPPort(address string) bool {
-	_, err := net.DialTimeout("tcp", address, 3*time.Second)
-	if err != nil {
-		return false
-	}
-	return true
-}
-
 func mainHandler(c *gin.Context) {
-	// fields := strings.Split(c.Params.ByName("field"), ".")
 	URLFields := strings.Split(strings.Trim(c.Request.URL.EscapedPath(), "/"), "/")
 	fields := strings.Split(URLFields[0], ".")
 	ip, err := net.ResolveTCPAddr("tcp", c.Request.RemoteAddr)
 	if err != nil {
-		c.Abort()
+		c.String(http.StatusInternalServerError, "Unable to determine remote address")
+		return
 	}
 
 	header_ip := net.ParseIP(strings.Split(c.Request.Header.Get(configuration.ipheader), ",")[0])
 	if header_ip != nil {
 		ip.IP = header_ip
 	}
-
-	if fields[0] == "porttest" {
-		if len(fields) >= 2 {
-			if port, err := strconv.Atoi(fields[1]); err == nil && port > 0 && port <= 65535 {
-				c.String(200, fmt.Sprintln(testRemoteTCPPort(ip.IP.String()+":"+fields[1])))
-			} else {
-				c.String(400, "Invalid Port Number")
-			}
-		} else {
-			c.String(400, "Need Port")
-		}
-		return
-	}
-
-	//if strings.HasPrefix(fields[0], ".well-known/") {
-	//	http.ServeFile(c.Writer, c.Request)
-	//	return
-	//}
 
 	c.Set("ifconfig_hostname", configuration.hostname)
 	c.Set("ifconfig_cmd_hostname", configuration.cmd_hostname)
@@ -128,10 +96,9 @@ func mainHandler(c *gin.Context) {
 	c.Set("host", ip.IP.String())
 
 	// Only lookup hostname if the results are going to need it.
-	// if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
 	if fields[0] == "host" || (fields[0] == "" && !isReqFromCmdLine(ua)) {
 		hostnames, err := lookupAddr(ip.IP.String())
-		if err == nil {
+		if err == nil && len(hostnames) > 0 {
 			c.Set("host", hostnames[0])
 		}
 	}
@@ -148,9 +115,6 @@ func mainHandler(c *gin.Context) {
 		} else {
 			c.HTML(200, "index.html", c.Keys)
 		}
-		return
-	case "request":
-		c.JSON(200, c.Request)
 		return
 	case "all":
 		if wantsJSON {
@@ -255,7 +219,7 @@ func newRouter() *gin.Engine {
 	for _, route := range []string{
 		"ip", "ua", "port", "lang", "encoding", "method",
 		"mime", "referer", "forwarded", "country_code",
-		"all", "headers", "porttest", "host",
+		"all", "headers", "host",
 	} {
 		r.GET(fmt.Sprintf("/%s", route), mainHandler)
 		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
