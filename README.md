@@ -82,4 +82,20 @@ TLSCERT="/opt/ifconfig/.cf/ifconfig.io.crt"
 TLSKEY="/opt/ifconfig/.cf/ifconfig.io.key"
 REVERSE_DNS_TIMEOUT="300ms" # Max time a request waits for a reverse DNS lookup
 REVERSE_DNS_CACHE_SIZE="100000" # Number of reverse DNS results kept in memory
+TRUSTED_PROXIES="cloudflare,private" # Peers allowed to set FORWARD_IP_HEADER
+PROXY_PROTOCOL_TRUSTED="" # Peers allowed to connect to PROXY_PROTOCOL_ADDR
 ```
+
+`TRUSTED_PROXIES` and `PROXY_PROTOCOL_TRUSTED` take a comma separated list of
+CIDRs, IP addresses, and the keywords `cloudflare` (Cloudflare's published
+ranges), `private` (loopback, RFC 1918, CGNAT, link-local and ULA ranges) and
+`*` (everyone).
+
+`FORWARD_IP_HEADER` is ignored unless the connection comes from one of the
+`TRUSTED_PROXIES`, so clients cannot spoof their address by sending the header
+themselves. Set `TRUSTED_PROXIES="*"` to restore the old behaviour of trusting
+the header from anyone.
+
+When `PROXY_PROTOCOL_TRUSTED` is set, connections to the PROXY protocol
+listener must come from one of those networks and must send a PROXY header;
+all other connections are dropped.

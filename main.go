@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"strconv"
 	"strings"
@@ -30,6 +31,9 @@ type Configuration struct {
 
 	rdnsTimeout   time.Duration // How long a request waits for reverse DNS
 	rdnsCacheSize int           // Number of reverse DNS results to cache
+
+	trustedProxies prefixSet // Peers allowed to set ipheader
+	proxyTrusted   prefixSet // Peers allowed to send PROXY headers (nil: library default)
 }
 
 var configuration = Configuration{}
@@ -65,6 +69,17 @@ func init() {
 		panic(fmt.Sprintf("invalid REVERSE_DNS_CACHE_SIZE: %v", err))
 	}
 
+	trustedProxies, err := parsePrefixSet(getEnvWithDefault("TRUSTED_PROXIES", "cloudflare,private"))
+	if err != nil {
+		panic(fmt.Sprintf("invalid TRUSTED_PROXIES: %v", err))
+	}
+	var proxyTrusted prefixSet
+	if spec := os.Getenv("PROXY_PROTOCOL_TRUSTED"); spec != "" {
+		if proxyTrusted, err = parsePrefixSet(spec); err != nil {
+			panic(fmt.Sprintf("invalid PROXY_PROTOCOL_TRUSTED: %v", err))
+		}
+	}
+
 	configuration = Configuration{
 		hostname:       hostname,
 		cmd_hostname:   cmd_hostname,
@@ -80,6 +95,9 @@ func init() {
 
 		rdnsTimeout:   rdnsTimeout,
 		rdnsCacheSize: rdnsCacheSize,
+
+		trustedProxies: trustedProxies,
+		proxyTrusted:   proxyTrusted,
 	}
 }
 
@@ -92,9 +110,13 @@ func mainHandler(c *gin.Context) {
 		return
 	}
 
-	header_ip := net.ParseIP(strings.Split(c.Request.Header.Get(configuration.ipheader), ",")[0])
-	if header_ip != nil {
-		ip.IP = header_ip
+	// Only believe the client IP header if the connection came from a proxy
+	// we trust to set it. Otherwise anyone could claim any address.
+	if peer, ok := netip.AddrFromSlice(ip.IP); ok && configuration.trustedProxies.Contains(peer) {
+		header_ip := net.ParseIP(strings.Split(c.Request.Header.Get(configuration.ipheader), ",")[0])
+		if header_ip != nil {
+			ip.IP = header_ip
+		}
 	}
 
 	c.Set("ifconfig_hostname", configuration.hostname)
@@ -185,38 +207,52 @@ func main() {
 	r := newRouter()
 
 	errc := make(chan error)
-	go func(errc chan error) {
-		for err := range errc {
-			panic(err)
-		}
-	}(errc)
 
-	go func(errc chan error) {
-		errc <- r.Run(fmt.Sprintf("%s:%s", configuration.host, configuration.port))
-	}(errc)
+	go func() {
+		errc <- newServer(net.JoinHostPort(configuration.host, configuration.port), r).ListenAndServe()
+	}()
 
 	if configuration.tls {
-		go func(errc chan error) {
-			errc <- r.RunTLS(
-				fmt.Sprintf("%s:%s", configuration.host, configuration.tlsport),
-				configuration.tlscert, configuration.tlskey)
-		}(errc)
+		go func() {
+			srv := newServer(net.JoinHostPort(configuration.host, configuration.tlsport), r)
+			errc <- srv.ListenAndServeTLS(configuration.tlscert, configuration.tlskey)
+		}()
 	}
 
 	if configuration.proxy_listener != "" {
-		go func(errc chan error) {
+		go func() {
 			list, err := net.Listen("tcp", configuration.proxy_listener)
 			if err != nil {
 				errc <- err
 				return
 			}
-			proxyListener := &proxyproto.Listener{Listener: list}
+			proxyListener := &proxyproto.Listener{
+				Listener:          list,
+				ReadHeaderTimeout: 5 * time.Second,
+			}
+			if configuration.proxyTrusted != nil {
+				proxyListener.ConnPolicy = proxyProtocolPolicy(configuration.proxyTrusted)
+			}
 			defer proxyListener.Close()
-			errc <- r.RunListener(proxyListener)
-		}(errc)
+			errc <- newServer(configuration.proxy_listener, r).Serve(proxyListener)
+		}()
 	}
 
-	fmt.Println(<-errc)
+	panic(<-errc)
+}
+
+// newServer returns an http.Server with timeouts, so slow or idle clients
+// cannot hold connections (and file descriptors) open indefinitely.
+func newServer(addr string, h http.Handler) *http.Server {
+	return &http.Server{
+		Addr:              addr,
+		Handler:           h,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    64 << 10,
+	}
 }
 
 func newRouter() *gin.Engine {

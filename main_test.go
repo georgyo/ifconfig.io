@@ -250,20 +250,28 @@ func TestHostEmptyLookupResult(t *testing.T) {
 
 func TestIPHeader(t *testing.T) {
 	h := newRouter()
-	for _, tt := range []struct{ header, want string }{
-		{"198.51.100.9", "198.51.100.9"},
-		{"198.51.100.9, 10.0.0.1", "198.51.100.9"},
-		{"2001:db8::1", "2001:db8::1"},
-		{"not-an-ip", testRemoteIP},
-		{"", testRemoteIP},
+	const cloudflarePeer = "162.158.1.2:4321"
+	for _, tt := range []struct{ remote, header, want string }{
+		{cloudflarePeer, "198.51.100.9", "198.51.100.9"},
+		{cloudflarePeer, "198.51.100.9, 10.0.0.1", "198.51.100.9"},
+		{cloudflarePeer, "2001:db8::1", "2001:db8::1"},
+		{"[2606:4700::1]:4321", "198.51.100.9", "198.51.100.9"},
+		{"10.1.2.3:4321", "198.51.100.9", "198.51.100.9"},
+		{"127.0.0.1:4321", "198.51.100.9", "198.51.100.9"},
+		{cloudflarePeer, "not-an-ip", "162.158.1.2"},
+		{cloudflarePeer, "", "162.158.1.2"},
+		// Untrusted peers cannot override their address.
+		{testRemoteAddr, "198.51.100.9", testRemoteIP},
+		{"[2001:db8::7]:4321", "198.51.100.9", "2001:db8::7"},
 	} {
 		req := newTestRequest("GET", "/ip")
+		req.RemoteAddr = tt.remote
 		if tt.header != "" {
 			req.Header.Set("CF-Connecting-IP", tt.header)
 		}
 		w := serve(h, req)
 		if w.Body.String() != tt.want+"\n" {
-			t.Errorf("header %q: body = %q, want %q", tt.header, w.Body.String(), tt.want)
+			t.Errorf("remote %s header %q: body = %q, want %q", tt.remote, tt.header, w.Body.String(), tt.want)
 		}
 	}
 }
