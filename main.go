@@ -130,7 +130,7 @@ func mainHandler(c *gin.Context) {
 	// Only lookup hostname if the results are going to need it.
 	// if stringInSlice(fields[0], []string{"all", "host"}) || (fields[0] == "" && ua[0] != "curl") {
 	if fields[0] == "host" || (fields[0] == "" && !isReqFromCmdLine(ua)) {
-		hostnames, err := net.LookupAddr(ip.IP.String())
+		hostnames, err := lookupAddr(ip.IP.String())
 		if err == nil {
 			c.Set("host", hostnames[0])
 		}
@@ -191,6 +191,9 @@ func mainHandler(c *gin.Context) {
 
 }
 
+// lookupAddr performs reverse DNS lookups. It is a variable so tests can stub it.
+var lookupAddr = net.LookupAddr
+
 func getEnvWithDefault(key string, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -200,27 +203,7 @@ func getEnvWithDefault(key string, defaultValue string) string {
 }
 
 func main() {
-	// Gin defaults to debug mode, which re-reads and re-parses the HTML
-	// templates from disk on every request. Default to release mode unless the
-	// operator explicitly asked for something else.
-	if os.Getenv(gin.EnvGinMode) == "" {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.LoadHTMLGlob("templates/*")
-
-	for _, route := range []string{
-		"ip", "ua", "port", "lang", "encoding", "method",
-		"mime", "referer", "forwarded", "country_code",
-		"all", "headers", "porttest", "host",
-	} {
-		r.GET(fmt.Sprintf("/%s", route), mainHandler)
-		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
-		r.GET(fmt.Sprintf("/%s.js", route), mainHandler)
-	}
-	r.GET("/", mainHandler)
+	r := newRouter()
 
 	errc := make(chan error)
 	go func(errc chan error) {
@@ -255,6 +238,31 @@ func main() {
 	}
 
 	fmt.Println(<-errc)
+}
+
+func newRouter() *gin.Engine {
+	// Gin defaults to debug mode, which re-reads and re-parses the HTML
+	// templates from disk on every request. Default to release mode unless the
+	// operator explicitly asked for something else.
+	if os.Getenv(gin.EnvGinMode) == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.LoadHTMLGlob("templates/*")
+
+	for _, route := range []string{
+		"ip", "ua", "port", "lang", "encoding", "method",
+		"mime", "referer", "forwarded", "country_code",
+		"all", "headers", "porttest", "host",
+	} {
+		r.GET(fmt.Sprintf("/%s", route), mainHandler)
+		r.GET(fmt.Sprintf("/%s.json", route), mainHandler)
+		r.GET(fmt.Sprintf("/%s.js", route), mainHandler)
+	}
+	r.GET("/", mainHandler)
+	return r
 }
 
 func isReqFromCmdLine(ua string) bool {
