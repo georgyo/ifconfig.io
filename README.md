@@ -96,6 +96,11 @@ ranges), `private` (loopback, RFC 1918, CGNAT, link-local and ULA ranges) and
 themselves. Set `TRUSTED_PROXIES="*"` to restore the old behaviour of trusting
 the header from anyone.
 
+The Go garbage collector is tuned for this workload at startup: `GOGC`
+defaults to 200, and when running under a cgroup memory limit `GOMEMLIMIT`
+defaults to 90% of that limit. Setting either environment variable overrides
+the default.
+
 When `PROXY_PROTOCOL_TRUSTED` is set, connections to the PROXY protocol
 listener must come from one of those networks and must send a PROXY header;
 all other connections are dropped.
