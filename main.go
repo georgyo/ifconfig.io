@@ -111,8 +111,13 @@ func main() {
 	panic(<-errc)
 }
 
-// newServer returns an http.Server with timeouts, so slow or idle clients
-// cannot hold connections (and file descriptors) open indefinitely.
+// newServer returns an http.Server with timeouts on reading and writing a
+// request, so slow clients cannot hold a request open indefinitely.
+//
+// Idle keep-alive connections are never timed out: the upstream proxy
+// (Cloudflare) pools and reuses them, and closing them only causes reconnect
+// churn. IdleTimeout must be negative for that; zero would fall back to
+// ReadTimeout.
 func newServer(addr string, h http.Handler) *http.Server {
 	return &http.Server{
 		Addr:              addr,
@@ -120,7 +125,7 @@ func newServer(addr string, h http.Handler) *http.Server {
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       120 * time.Second,
+		IdleTimeout:       -1,
 		MaxHeaderBytes:    64 << 10,
 	}
 }
