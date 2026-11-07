@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"net/netip"
 	"strings"
-
-	proxyproto "github.com/pires/go-proxyproto"
 )
 
 // Published at https://www.cloudflare.com/ips/
@@ -99,25 +96,4 @@ func (s prefixSet) Contains(a netip.Addr) bool {
 		}
 	}
 	return false
-}
-
-func (s prefixSet) containsNetAddr(addr net.Addr) bool {
-	if ta, ok := addr.(*net.TCPAddr); ok {
-		a, ok := netip.AddrFromSlice(ta.IP)
-		return ok && s.Contains(a)
-	}
-	ap, err := netip.ParseAddrPort(addr.String())
-	return err == nil && s.Contains(ap.Addr())
-}
-
-// proxyProtocolPolicy requires a PROXY header from trusted peers and rejects
-// connections from everyone else, so untrusted clients cannot spoof their
-// source address.
-func proxyProtocolPolicy(trusted prefixSet) proxyproto.ConnPolicyFunc {
-	return func(opts proxyproto.ConnPolicyOptions) (proxyproto.Policy, error) {
-		if trusted.containsNetAddr(opts.Upstream) {
-			return proxyproto.REQUIRE, nil
-		}
-		return proxyproto.REJECT, proxyproto.ErrInvalidUpstream
-	}
 }
