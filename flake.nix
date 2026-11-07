@@ -56,7 +56,7 @@
             name = "ifconfig.io-${version}";
 
             src = self;
-            vendorHash = "sha256-aSXYTPiKxxJaJkbzZtRrPIYo0g8MKtTcK2yGZ+quDj4=";
+            vendorHash = null; # no external dependencies
 
             postInstall = ''
               mkdir -p $out/usr/lib/ifconfig.io/

@@ -8,28 +8,24 @@ import (
 	"os"
 	"strconv"
 	"time"
-
-	proxyproto "github.com/pires/go-proxyproto"
 )
 
 type Configuration struct {
-	hostname       string // Displayed Hostname
-	cmd_hostname   string // Displayed Hostname for CMD section
-	host           string // Listened Host
-	port           string // HTTP Port
-	proxy_listener string // Proxy Protocol Listener
-	ipheader       string // Header to overwrite the remote IP
-	countryheader  string // Header to find country code associated to remote IP
-	tls            bool   // TLS enabled
-	tlscert        string // TLS Cert Path
-	tlskey         string // TLS Cert Key Path
-	tlsport        string // HTTPS Port
+	hostname      string // Displayed Hostname
+	cmd_hostname  string // Displayed Hostname for CMD section
+	host          string // Listened Host
+	port          string // HTTP Port
+	ipheader      string // Header to overwrite the remote IP
+	countryheader string // Header to find country code associated to remote IP
+	tls           bool   // TLS enabled
+	tlscert       string // TLS Cert Path
+	tlskey        string // TLS Cert Key Path
+	tlsport       string // HTTPS Port
 
 	rdnsTimeout   time.Duration // How long a request waits for reverse DNS
 	rdnsCacheSize int           // Number of reverse DNS results to cache
 
 	trustedProxies prefixSet // Peers allowed to set ipheader
-	proxyTrusted   prefixSet // Peers allowed to send PROXY headers (nil: library default)
 }
 
 var configuration = Configuration{}
@@ -42,7 +38,6 @@ func init() {
 
 	host := getEnvWithDefault("HOST", "")
 	port := getEnvWithDefault("PORT", "8080")
-	proxy_listener := getEnvWithDefault("PROXY_PROTOCOL_ADDR", "")
 
 	// Most common alternative would be X-Forwarded-For
 	ipheader := getEnvWithDefault("FORWARD_IP_HEADER", "CF-Connecting-IP")
@@ -67,31 +62,23 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("invalid TRUSTED_PROXIES: %v", err))
 	}
-	var proxyTrusted prefixSet
-	if spec := os.Getenv("PROXY_PROTOCOL_TRUSTED"); spec != "" {
-		if proxyTrusted, err = parsePrefixSet(spec); err != nil {
-			panic(fmt.Sprintf("invalid PROXY_PROTOCOL_TRUSTED: %v", err))
-		}
-	}
 
 	configuration = Configuration{
-		hostname:       hostname,
-		cmd_hostname:   cmd_hostname,
-		host:           host,
-		port:           port,
-		proxy_listener: proxy_listener,
-		ipheader:       textproto.CanonicalMIMEHeaderKey(ipheader),
-		countryheader:  textproto.CanonicalMIMEHeaderKey(countryheader),
-		tls:            tlsenabled == "1",
-		tlscert:        tlscert,
-		tlskey:         tlskey,
-		tlsport:        tlsport,
+		hostname:      hostname,
+		cmd_hostname:  cmd_hostname,
+		host:          host,
+		port:          port,
+		ipheader:      textproto.CanonicalMIMEHeaderKey(ipheader),
+		countryheader: textproto.CanonicalMIMEHeaderKey(countryheader),
+		tls:           tlsenabled == "1",
+		tlscert:       tlscert,
+		tlskey:        tlskey,
+		tlsport:       tlsport,
 
 		rdnsTimeout:   rdnsTimeout,
 		rdnsCacheSize: rdnsCacheSize,
 
 		trustedProxies: trustedProxies,
-		proxyTrusted:   proxyTrusted,
 	}
 }
 
@@ -118,25 +105,6 @@ func main() {
 		go func() {
 			srv := newServer(net.JoinHostPort(configuration.host, configuration.tlsport), r)
 			errc <- srv.ListenAndServeTLS(configuration.tlscert, configuration.tlskey)
-		}()
-	}
-
-	if configuration.proxy_listener != "" {
-		go func() {
-			list, err := net.Listen("tcp", configuration.proxy_listener)
-			if err != nil {
-				errc <- err
-				return
-			}
-			proxyListener := &proxyproto.Listener{
-				Listener:          list,
-				ReadHeaderTimeout: 5 * time.Second,
-			}
-			if configuration.proxyTrusted != nil {
-				proxyListener.ConnPolicy = proxyProtocolPolicy(configuration.proxyTrusted)
-			}
-			defer proxyListener.Close()
-			errc <- newServer(configuration.proxy_listener, r).Serve(proxyListener)
 		}()
 	}
 
