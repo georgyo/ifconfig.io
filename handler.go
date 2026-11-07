@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"html/template"
+	"net"
 	"net/http"
 	"net/netip"
 	"slices"
@@ -126,8 +128,7 @@ func putBuffer(b *buffer) {
 
 // server is the HTTP handler for every endpoint.
 type server struct {
-	tmpl  *template.Template
-	hosts *rdnsCache
+	tmpl *template.Template
 }
 
 // pageData is what the HTML template renders.
@@ -149,8 +150,7 @@ type pageData struct {
 
 func newRouter() http.Handler {
 	return &server{
-		tmpl:  template.Must(template.ParseGlob("templates/*")),
-		hosts: newRDNSCache(configuration.rdnsCacheSize),
+		tmpl: template.Must(template.ParseGlob("templates/*")),
 	}
 }
 
@@ -330,12 +330,18 @@ func (s *server) renderPage(w http.ResponseWriter, r *http.Request, ip netip.Add
 	respond(w, http.StatusOK, ctHTML, buf.b)
 }
 
+// lookupAddr performs reverse DNS lookups. It is a variable so tests can stub it.
+var lookupAddr = net.DefaultResolver.LookupAddr
+
 // hostname returns the reverse DNS name for ip, or the IP itself if there is
-// none (or it is too slow to find).
+// none. The lookup is bounded by REVERSE_DNS_TIMEOUT so a slow PTR server
+// cannot stall the request.
 func (s *server) hostname(ip netip.Addr) string {
 	ipStr := ip.String()
-	if name, ok := s.hosts.Lookup(ipStr, configuration.rdnsTimeout); ok {
-		return name
+	ctx, cancel := context.WithTimeout(context.Background(), configuration.rdnsTimeout)
+	defer cancel()
+	if names, err := lookupAddr(ctx, ipStr); err == nil && len(names) > 0 {
+		return names[0]
 	}
 	return ipStr
 }
