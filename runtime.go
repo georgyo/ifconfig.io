@@ -8,19 +8,18 @@ import (
 	"strings"
 )
 
-// tuneRuntime adjusts the garbage collector for this workload: a tiny live
-// heap and a very high rate of short-lived allocations from net/http.
+// tuneRuntime adjusts the garbage collector at startup.
 //
-//   - GOGC defaults to 200 rather than 100, trading a little memory for half
-//     as many GC cycles. Set GOGC to override.
-//   - When running under a cgroup memory limit (containers, systemd
-//     MemoryMax=) and GOMEMLIMIT is not set, the soft memory limit is set to
-//     90% of it so the higher GOGC cannot push the process into the OOM
-//     killer. Set GOMEMLIMIT to override.
+// When running under a cgroup memory limit (containers, systemd MemoryMax=)
+// and GOMEMLIMIT is not set, the soft memory limit is set to 90% of it, so the
+// GC works harder as memory gets tight instead of letting the process be OOM
+// killed. Set GOMEMLIMIT to override.
+//
+// GOGC is deliberately left at Go's default (100). Most of the live heap is
+// per-connection state, so with tens of thousands of connections a higher
+// GOGC grows memory roughly in proportion and costs far more than the GC
+// cycles it saves.
 func tuneRuntime() {
-	if os.Getenv("GOGC") == "" {
-		debug.SetGCPercent(200)
-	}
 	if os.Getenv("GOMEMLIMIT") == "" {
 		if limit, ok := cgroupMemoryLimit(); ok {
 			debug.SetMemoryLimit(limit / 10 * 9)
