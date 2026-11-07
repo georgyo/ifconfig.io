@@ -93,7 +93,5 @@ RFC 1918, CGNAT, link-local and ULA ranges) and `*` (everyone).
 themselves. Set `TRUSTED_PROXIES="*"` to restore the old behaviour of trusting
 the header from anyone.
 
-The Go garbage collector is tuned for this workload at startup: `GOGC`
-defaults to 200, and when running under a cgroup memory limit `GOMEMLIMIT`
-defaults to 90% of that limit. Setting either environment variable overrides
-the default.
+When running under a cgroup memory limit and `GOMEMLIMIT` is unset,
+`GOMEMLIMIT` defaults to 90% of that limit. Set `GOMEMLIMIT` to override it.
