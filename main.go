@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -22,8 +21,7 @@ type Configuration struct {
 	tlskey        string // TLS Cert Key Path
 	tlsport       string // HTTPS Port
 
-	rdnsTimeout   time.Duration // How long a request waits for reverse DNS
-	rdnsCacheSize int           // Number of reverse DNS results to cache
+	rdnsTimeout time.Duration // How long a request waits for reverse DNS
 
 	trustedProxies prefixSet // Peers allowed to set ipheader
 }
@@ -53,10 +51,6 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("invalid REVERSE_DNS_TIMEOUT: %v", err))
 	}
-	rdnsCacheSize, err := strconv.Atoi(getEnvWithDefault("REVERSE_DNS_CACHE_SIZE", "100000"))
-	if err != nil {
-		panic(fmt.Sprintf("invalid REVERSE_DNS_CACHE_SIZE: %v", err))
-	}
 
 	trustedProxies, err := parsePrefixSet(getEnvWithDefault("TRUSTED_PROXIES", "cloudflare,private"))
 	if err != nil {
@@ -75,8 +69,7 @@ func init() {
 		tlskey:        tlskey,
 		tlsport:       tlsport,
 
-		rdnsTimeout:   rdnsTimeout,
-		rdnsCacheSize: rdnsCacheSize,
+		rdnsTimeout: rdnsTimeout,
 
 		trustedProxies: trustedProxies,
 	}

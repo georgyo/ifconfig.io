@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 const (
@@ -258,6 +259,24 @@ func TestReverseDNSOnlyWhenNeeded(t *testing.T) {
 	}
 	if *calls != 0 {
 		t.Errorf("reverse DNS performed %d times, want 0", *calls)
+	}
+}
+
+func TestHostLookupTimeout(t *testing.T) {
+	orig := lookupAddr
+	lookupAddr = func(ctx context.Context, _ string) ([]string, error) {
+		<-ctx.Done() // a PTR server that never answers
+		return nil, ctx.Err()
+	}
+	t.Cleanup(func() { lookupAddr = orig })
+
+	start := time.Now()
+	w := serve(newRouter(), newTestRequest("GET", "/host"))
+	if w.Body.String() != testRemoteIP+"\n" {
+		t.Fatalf("body = %q", w.Body.String())
+	}
+	if d := time.Since(start); d > configuration.rdnsTimeout+time.Second {
+		t.Fatalf("request took %v", d)
 	}
 }
 

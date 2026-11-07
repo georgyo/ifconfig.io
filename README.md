@@ -80,7 +80,6 @@ TLSPORT="8443"
 TLSCERT="/opt/ifconfig/.cf/ifconfig.io.crt"
 TLSKEY="/opt/ifconfig/.cf/ifconfig.io.key"
 REVERSE_DNS_TIMEOUT="300ms" # Max time a request waits for a reverse DNS lookup
-REVERSE_DNS_CACHE_SIZE="100000" # Number of reverse DNS results kept in memory
 TRUSTED_PROXIES="cloudflare,private" # Peers allowed to set FORWARD_IP_HEADER
 ```
 
